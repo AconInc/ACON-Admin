@@ -25,6 +25,17 @@
   --color-secondary-green: #4FC938;
   --color-secondary-blue: #3E57FF;
   --color-secondary-yellow: #FFD324;
+
+  /* 폰트 */
+  --font-inter: var(--font-inter), system-ui, -apple-system, sans-serif;
+  
+  /* 폰트 스타일 */
+  --font-heading-xl: 600 1.5rem var(--font-inter);      /* SemiBold 24px */
+  --font-heading-lg: 600 1.125rem var(--font-inter);    /* SemiBold 18px */
+  --font-body-lg: 400 1.125rem var(--font-inter);       /* Regular 18px */
+  --font-body-md: 600 1rem var(--font-inter);           /* SemiBold 16px */
+  --font-body-sm: 600 0.875rem var(--font-inter);       /* SemiBold 14px */
+  --font-caption: 400 0.875rem var(--font-inter);       /* Regular 14px */
 }
 
 @layer base {
