@@ -1,4 +1,5 @@
 import LoginForm from './components/LoginForm'
+import Image from 'next/image'
 
 export default function LoginPage() {
   return (
@@ -22,14 +23,11 @@ export default function LoginPage() {
           justifyContent: 'center',
           marginBottom: '60px'
         }}>
-          <img 
-            src="images/photos/img_logo.png"  
+          <Image
+            src="/images/photos/img_logo.png"  
             alt="Acon Logo"
-            style={{
-              width: '60px',
-              height: '67px',
-              marginRight: '16px'
-            }}
+            width={60}
+            height={67}
           />
           <h1 style={{ 
             margin: 0, 

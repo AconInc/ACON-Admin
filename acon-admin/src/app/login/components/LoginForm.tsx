@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function LoginForm() {
   const [id, setId] = useState<string>('Acon')
@@ -123,7 +124,7 @@ export default function LoginForm() {
               justifyContent: 'center'
             }}
           >
-            <img
+            <Image
               src={showPassword ? "images/icons/ic_eye_open.svg" : "images/icons/ic_eye_closed.svg"}
               alt={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
               width={20}
