@@ -12,6 +12,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
   const isMounted = useRef(true)
+  const [error, setError] = useState<string>('');
   
   // 언마운트 시 정리
   useEffect(() => {
@@ -33,11 +34,11 @@ export default function LoginForm() {
         if (isMounted.current) {
           router.push('/dashboard')
           setLoading(false)
+          setError('');
         }
       }, 1000)
-      
     } catch (error) {
-      alert('로그인에 실패했습니다.')
+      setError('아이디 또는 비밀번호가 일치하지 않습니다.');
       if (isMounted.current) {
         setLoading(false)
       }
@@ -148,6 +149,22 @@ export default function LoginForm() {
             />
           </button>
         </div>
+        {/* 에러 메시지 - 여기가 올바른 위치 */}
+        {error && (
+          <div 
+            style={{ 
+              color: 'var(--color-primary-red)', 
+              font: 'var(--font-r-14)',
+              marginTop: '8px',
+              display: 'flex',
+              gap: '8px',
+              alignItems: 'center'
+            }}
+          >
+            <span>⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
       </div>
       
       {/* 로그인 버튼 */}
