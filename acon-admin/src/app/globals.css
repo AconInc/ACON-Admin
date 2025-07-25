@@ -1,9 +1,4 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
+:root {
   /* 그레이스케일 */
   --color-black: #111111;
   --color-gray-800: #374553;
