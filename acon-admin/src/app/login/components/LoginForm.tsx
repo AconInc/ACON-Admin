@@ -2,14 +2,23 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useRef, useEffect } from 'react';
 import Image from 'next/image'
 
 export default function LoginForm() {
-  const [id, setId] = useState<string>('Acon')
+  const [id, setId] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
+  const isMounted = useRef(true)
+  
+  // 언마운트 시 정리
+  useEffect(() => {
+    return () => {
+      isMounted.current = false
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -21,13 +30,17 @@ export default function LoginForm() {
       
       // 임시로 성공 처리
       setTimeout(() => {
-        router.push('/dashboard')
-        setLoading(false)
+        if (isMounted.current) {
+          router.push('/dashboard')
+          setLoading(false)
+        }
       }, 1000)
       
     } catch (error) {
       alert('로그인에 실패했습니다.')
-      setLoading(false)
+      if (isMounted.current) {
+        setLoading(false)
+      }
     }
   }
 
