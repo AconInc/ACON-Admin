@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useRef, useEffect } from 'react';
 import Image from 'next/image'
 
 export default function LoginForm() {
@@ -37,7 +36,7 @@ export default function LoginForm() {
           setError('');
         }
       }, 1000)
-    } catch (error) {
+    } catch (loginError) {
       setError('아이디 또는 비밀번호가 일치하지 않습니다.');
       if (isMounted.current) {
         setLoading(false)
@@ -105,7 +104,7 @@ export default function LoginForm() {
               width: '100%',
               padding: '16px 56px 16px 20px',
               border: '1px solid var(--color-gray-300)',
-              borderRadius: '12px',
+              borderRadius: '8px',
               boxSizing: 'border-box',
               outline: 'none',
               backgroundColor: '#fff',
@@ -139,7 +138,7 @@ export default function LoginForm() {
             }}
           >
             <Image
-              src={showPassword ? "images/icons/ic_eye_open.svg" : "images/icons/ic_eye_closed.svg"}
+              src={showPassword ? "/images/icons/ic_eye_open.svg" : "/images/icons/ic_eye_closed.svg"}
               alt={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
               width={20}
               height={20}
@@ -177,7 +176,7 @@ export default function LoginForm() {
           backgroundColor: '#333',
           color: 'white',
           border: 'none',
-          borderRadius: '12px',
+          borderRadius: '8px',
           cursor: loading ? 'not-allowed' : 'pointer',
           opacity: loading ? 0.7 : 1,
           transition: 'all 0.2s ease',
