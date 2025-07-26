@@ -22,15 +22,16 @@
   --color-secondary-yellow: #FFD324;
 
   /* 폰트 */
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
   --font-primary: var(--font-inter), system-ui, -apple-system, sans-serif;
   
   /* 폰트 스타일 */
-  --font-sb-24: 600 1.5rem var(--font-primary);
-  --font-sb-18: 600 1.125rem var(--font-primary);
-  --font-r-18: 400 1.125rem var(--font-primary);
-  --font-sb-16: 600 1rem var(--font-primary);
-  --font-sb-14: 600 0.875rem var(--font-primary);
-  --font-r-14: 400 0.875rem var(--font-primary);
+  --font-sb-24: 600 1.5rem/1.4 var(--font-primary);
+  --font-sb-18: 600 1.125rem/1.4 var(--font-primary);
+  --font-r-18: 400 1.125rem/1.4 var(--font-primary);
+  --font-sb-16: 600 1rem/1.4 var(--font-primary);
+  --font-sb-14: 600 0.875rem/1.4 var(--font-primary);
+  --font-r-14: 400 0.875rem/1.4 var(--font-primary);
 }
 
 * {
@@ -40,6 +41,5 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-primary);
   -webkit-font-smoothing: antialiased;
 }
