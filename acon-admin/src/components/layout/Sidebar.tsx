@@ -14,13 +14,15 @@ export default function Sidebar() {
   ]
   
   return (
-    <div style={{ 
-      width: '280px', 
-      backgroundColor: 'var(--color-gray-300', 
-      borderRight: '2px solid var(--color-gray-500)',
-      height: '100vh',
-      padding: '20px 0'
-    }}>
+    <div 
+      style={{ 
+        width: '280px', 
+        backgroundColor: 'var(--color-gray-300)', 
+        borderRight: '2px solid var(--color-gray-500)',
+        height: '100vh',
+        padding: '20px 0'
+      }}
+    >
       {/* 로고 영역 */}
       <div style={{ padding: '0 24px', marginBottom: '32px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
