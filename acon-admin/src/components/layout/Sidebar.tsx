@@ -79,8 +79,7 @@ export default function Sidebar() {
     <div 
       style={{ 
         width: isCollapsed ? '80px' : '280px',
-        backgroundColor: 'var(--color-gray-300)', 
-        borderRight: '2px solid var(--color-gray-500)',
+        borderRight: '2px solid var(--color-gray-300)',
         height: '100vh',
         padding: '20px 0',
         transition: 'width 0.3s ease',
@@ -97,7 +96,7 @@ export default function Sidebar() {
           width: '24px',
           height: '24px',
           backgroundColor: 'white',
-          border: '2px solid var(--color-gray-500)',
+          border: '1px solid var(--color-gray-500)',
           borderRadius: '50%',
           cursor: 'pointer',
           display: 'flex',
@@ -144,7 +143,8 @@ export default function Sidebar() {
         {menuItems.map((item) => {
           const isActive = pathname === item.path
           const isSubmenuActive = item.submenu?.some(sub => pathname === sub.path)
-          const isExpanded = expandedMenus[item.id] || false
+          const isMainMenuActive = item.hasSubmenu ? pathname === item.path : isActive
+          const isExpanded = expandedMenus[item.id] || isActive || isSubmenuActive
           
           return (
             <div 
@@ -165,8 +165,8 @@ export default function Sidebar() {
                       borderRadius: '8px',
                       marginBottom: '8px',
                       textDecoration: 'none',
-                      backgroundColor: (isActive || isSubmenuActive) ? '#ffe4d6' : 'transparent',
-                      color: (isActive || isSubmenuActive) ? 'var(--color-secondary-orange)' : '#666',
+                      backgroundColor: isMainMenuActive ? '#ffe4d6' : 'transparent',
+                      color: isMainMenuActive ? 'var(--color-secondary-orange)' : '#666',
                       transition: 'all 0.2s ease',
                       justifyContent: isCollapsed ? 'center' : 'space-between',
                       position: 'relative'
@@ -174,15 +174,6 @@ export default function Sidebar() {
                     title={isCollapsed ? item.name : ''}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      {/* 아이콘 영역 */}
-                      <div style={{ 
-                        width: '20px', 
-                        height: '20px',
-                        backgroundColor: (isActive || isSubmenuActive) ? 'var(--color-secondary-orange)' : '#999',
-                        borderRadius: '4px',
-                        flexShrink: 0
-                      }} />
-                      
                       {!isCollapsed && (
                         <span style={{ 
                           font: 'var(--font-sb-16)',
@@ -208,7 +199,7 @@ export default function Sidebar() {
                         border: 'none',
                         cursor: 'pointer',
                         fontSize: '12px',
-                        color: (isActive || isSubmenuActive) ? 'var(--color-secondary-orange)' : '#666',
+                        color: isMainMenuActive ? 'var(--color-secondary-orange)' : '#666',
                         padding: '4px',
                         transition: 'transform 0.2s ease'
                       }}
@@ -242,15 +233,6 @@ export default function Sidebar() {
                   }}
                   title={isCollapsed ? item.name : ''}
                 >
-                  {/* 아이콘 영역 */}
-                  <div style={{ 
-                    width: '20px', 
-                    height: '20px',
-                    backgroundColor: isActive ? 'var(--color-secondary-orange)' : '#999',
-                    borderRadius: '4px',
-                    flexShrink: 0
-                  }} />
-                  
                   {!isCollapsed && (
                     <span style={{ 
                       font: 'var(--font-sb-16)',
@@ -279,23 +261,15 @@ export default function Sidebar() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: '12px',
-                          padding: '8px 16px',
+                          padding: '8px 4px',
                           borderRadius: '6px',
-                          marginBottom: '4px',
+                          marginBottom: '8px',
                           textDecoration: 'none',
                           backgroundColor: isSubActive ? '#ffe4d6' : 'transparent',
                           color: isSubActive ? 'var(--color-secondary-orange)' : '#666',
-                          transition: 'all 0.2s ease',
-                          fontSize: '14px'
+                          transition: 'all 0.2s ease'
                         }}
                       >
-                        <div style={{ 
-                          width: '16px', 
-                          height: '16px',
-                          backgroundColor: isSubActive ? 'var(--color-secondary-orange)' : '#ccc',
-                          borderRadius: '3px',
-                          flexShrink: 0
-                        }} />
                         <span style={{ 
                           font: 'var(--font-sb-14)',
                           whiteSpace: 'nowrap'
