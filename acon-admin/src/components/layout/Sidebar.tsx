@@ -3,9 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react' // useEffect 추가
 
-// 타입 정의 추가
 interface SubMenuItem {
   id: number
   name: string
@@ -22,6 +21,7 @@ interface MenuItem {
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const submenuTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [expandedMenus, setExpandedMenus] = useState<Record<number, boolean>>({})
   
@@ -41,6 +41,16 @@ export default function Sidebar() {
     }
   ]
   
+  // 컴포넌트 언마운트 시 타이머 정리 (메모리 누수 방지)
+  useEffect(() => {
+    return () => {
+      if (submenuTimeoutRef.current) {
+        clearTimeout(submenuTimeoutRef.current)
+        submenuTimeoutRef.current = null
+      }
+    }
+  }, [])
+  
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed)
   }
@@ -54,9 +64,15 @@ export default function Sidebar() {
     }))
   }
 
-  // 호버로 서브메뉴 표시
+  // 마우스가 들어올 때 - 기존 타이머가 있으면 취소
   const handleMouseEnter = (menuId: number) => {
     if (!isCollapsed) {
+      // 기존 숨기기 타이머가 있으면 취소
+      if (submenuTimeoutRef.current) {
+        clearTimeout(submenuTimeoutRef.current)
+        submenuTimeoutRef.current = null
+      }
+      
       setExpandedMenus(prev => ({
         ...prev,
         [menuId]: true
@@ -64,14 +80,22 @@ export default function Sidebar() {
     }
   }
 
+  // 마우스가 나갈 때 - 지연 후 메뉴 숨기기
   const handleMouseLeave = (menuId: number) => {
     if (!isCollapsed) {
-      setTimeout(() => {
+      // 기존 타이머가 있으면 먼저 제거
+      if (submenuTimeoutRef.current) {
+        clearTimeout(submenuTimeoutRef.current)
+      }
+      
+      // 새 타이머 설정 (300ms 후 메뉴 숨기기)
+      submenuTimeoutRef.current = setTimeout(() => {
         setExpandedMenus(prev => ({
           ...prev,
           [menuId]: false
         }))
-      }, 200)
+        submenuTimeoutRef.current = null
+      }, 300)
     }
   }
   
