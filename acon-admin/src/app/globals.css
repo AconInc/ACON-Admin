@@ -20,6 +20,10 @@
   --color-secondary-green: #4FC938;
   --color-secondary-blue: #3E57FF;
   --color-secondary-yellow: #FFD324;
+  --color-secondary-skyBlue: #ddd6fe;
+  --color-secondary-purple: #5b21b6;
+  --color-secondary-brown: #92400e;
+  --color-secondary-lightYellow: #fef3c7;
 
   /* 폰트 */
   --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
