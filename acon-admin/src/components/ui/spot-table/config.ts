@@ -101,12 +101,13 @@ export const formatDate = (dateString: string) => {
   })
 }
 
+const SPOT_TYPE_DISPLAY_MAP: Record<string, string> = {
+  CAFE: '카페',
+  RESTAURANT: '식당'
+}
+
 export const getSpotTypeDisplay = (type: string) => {
-  switch (type) {
-    case 'CAFE': return '카페'
-    case 'RESTAURANT': return '식당'
-    default: return type
-  }
+  return SPOT_TYPE_DISPLAY_MAP[type] ?? type
 }
 
 export const getStatusDisplay = (status: string) => {
