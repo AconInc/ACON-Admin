@@ -139,4 +139,4 @@ export const useBulkUpdateStatus = () => {
 // 편의 훅
 export const useTrashSpots = () => useSpots({ status: ['DISCARDED'] })
 export const useNewSpots = () => useSpots({ status: ['PENDING'] })
-export const useActiveSpots = () => useSpots({ status: ['ACTIVE', 'INACTIVE'] })
+export const useAllSpots = () => useSpots({ status: ['ACTIVE', 'INACTIVE', 'PENDING'] })
