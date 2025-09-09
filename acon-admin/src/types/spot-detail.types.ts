@@ -1,6 +1,8 @@
 export type SpotStatus = 'PENDING' | 'ACTIVE' | 'INACTIVE' | 'DISCARDED'
 export type SpotType = 'CAFE' | 'RESTAURANT'
 export type CafeFeature = 'WORK_FRIENDLY'
+export type RestaurantFeature = 'KOREAN' | 'CHINESE' | 'JAPANESE' | 'WESTERN' | 'SOUTHEAST_ASIAN' | 'FUSION' | 'BUNSIK' | 'BUFFET' | 'DRINKING_PLACE' | 'OTHERS'
+export type SpotFeature = CafeFeature | RestaurantFeature
 export type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY'
 export type PriceFeature = 'CHEAP' | 'REASONABLE' | 'EXPENSIVE'
 
@@ -38,42 +40,42 @@ export interface SpotDetailResponse {
   localAcornCount: number
   basicAcornCount: number
   spotType: SpotType
-  spotFeature?: CafeFeature
+  spotFeature?: SpotFeature
   openingHourList: OpeningHour[]
   signatureMenuList?: SignatureMenu[]
   recommendedMenuList: RecommendedMenu[]
   priceFeature?: PriceFeature
-  menuboardImageList?: string[]  // fileName 배열
-  spotImageList?: string[]       // fileName 배열
+  menuboardImageList?: string[]
+  spotImageList?: string[]
 }
 
 export interface SpotFormData {
   spotName: string
   address: string
   spotType: SpotType
-  spotFeature?: CafeFeature
+  spotFeature?: SpotFeature
   localAcornCount: number | null
   basicAcornCount: number | null
   priceFeature?: PriceFeature
   openingHourList: OpeningHour[]
   signatureMenuList: SignatureMenu[]
   recommendedMenuList: RecommendedMenu[]
-  menuboardImageList: string[]  // fileName 배열
-  spotImageList: string[]       // fileName 배열
+  menuboardImageList: string[]
+  spotImageList: string[]
 }
 
 export interface SpotCreateRequest {
   spotName: string
   address: string
   spotType: SpotType
-  spotFeature?: CafeFeature
+  spotFeature?: SpotFeature
   localAcornCount: number
   basicAcornCount: number
   priceFeature?: PriceFeature
   openingHourList: OpeningHour[]
   signatureMenuList?: SignatureMenu[]
-  menuboardImageList?: string[]  // fileName 배열
-  spotImageList?: string[]       // fileName 배열
+  menuboardImageList?: string[]
+  spotImageList?: string[]
 }
 
 export interface SpotUpdateRequest extends SpotCreateRequest {

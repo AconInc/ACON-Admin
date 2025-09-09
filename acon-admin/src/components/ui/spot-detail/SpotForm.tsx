@@ -7,6 +7,7 @@ import type {
   PageMode, 
   SpotType, 
   CafeFeature, 
+  RestaurantFeature,
   PriceFeature,
   DayOfWeek,
   OpeningHour,
@@ -81,12 +82,13 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     KOREAN: '한식',
     CHINESE: '중식',
     JAPANESE: '일식',
-    ASIAN: '아시안',
+    WESTERN: '양식',
+    SOUTHEAST_ASIAN: '아시안',
     FUSION: '퓨전',
-    BAR: '술/Bar',
-    KOREAN_TRADITIONAL: '분식',
+    BUNSIK: '분식',
     BUFFET: '뷔페',
-    OTHER: '기타'
+    DRINKING_PLACE: '술/Bar',
+    OTHERS: '기타'
   }
 
   const priceFeatureLabels: Record<PriceFeature, string> = {
@@ -308,7 +310,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     })
   }
 
-  const updateOpeningHour = (dayOfWeek: DayOfWeek, field: keyof OpeningHour, value: any) => {
+  const updateOpeningHour = (dayOfWeek: DayOfWeek, field: keyof OpeningHour, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       openingHourList: prev.openingHourList.map((hour) => 
@@ -766,7 +768,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                     isActive={formData.spotFeature === key}
                     onClick={() => setFormData(prev => ({ 
                       ...prev, 
-                      spotFeature: prev.spotFeature === key ? undefined : key as any
+                      spotFeature: prev.spotFeature === key ? undefined : key as RestaurantFeature
                     }))}
                     style={{
                       padding: '6px 12px',
