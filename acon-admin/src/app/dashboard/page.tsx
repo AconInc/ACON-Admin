@@ -8,11 +8,11 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const handleDirectRegistration = () => {
-    router.push('dashboard/spot-detail/create');
+    router.push('/dashboard/spot-detail/create');
   };
 
   const handlePendingSpots = () => {
-    router.push('dashboard/store-management/new-store');
+    router.push('/dashboard/store-management/new-store');
   };
 
   return (

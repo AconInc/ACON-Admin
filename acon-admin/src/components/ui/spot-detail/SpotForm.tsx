@@ -569,7 +569,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               </span>
             </div>
           ) : (
-            <div style={{ fontSize: '16px', color: 'var(--color-black)7', fontWeight: '800' }}>
+            <div style={{ fontSize: '16px', color: 'var(--color-black)', fontWeight: '800' }}>
               aconadmin
             </div>
           )}
@@ -646,7 +646,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                 marginBottom: '8px',
                 color: 'var(--color-gray-800)'
               }}>
-                장소 종류 <span style={{ color: '#312a2aff' }}>*</span>
+                장소 종류 <span style={{ color: '#dc2626' }}>*</span>
               </label>
               <div style={{ display: 'flex', gap: '16px'}}>
                 <TagButton
@@ -738,7 +738,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              {formData.spotType === 'CAFE' ? '카페 특성' : '식당 특성'} <span style={{ color: '#ff6b35' }}>*</span>
+              {formData.spotType === 'CAFE' ? '카페 특성' : '식당 특성'} <span style={{ color: 'var(--color-secondary-orange)' }}>*</span>
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {formData.spotType === 'CAFE' ? (
