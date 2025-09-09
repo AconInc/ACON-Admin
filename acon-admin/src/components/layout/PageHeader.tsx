@@ -1,8 +1,8 @@
 'use client'
 
-export interface PageHeaderProps {
+interface PageHeaderProps {
   title: string
-  totalCount: number
+  totalCount?: number
   description?: string
   actions?: React.ReactNode
 }
@@ -28,17 +28,23 @@ export const PageHeader = ({
       }}>
         {title}
       </h1>
-      <p style={{
-        fontSize: '16px',
-        color: '#666',
-        margin: '0'
-      }}>
-        {description && <span>{description} </span>}
-        <span style={{ color: 'var(--color-secondary-blue)', fontWeight: '600' }}>
-          {totalCount.toLocaleString()}
-        </span>
-        개의 결과
-      </p>
+      {(description || totalCount !== undefined) && (
+        <p style={{
+          fontSize: '16px',
+          color: '#666',
+          margin: '0'
+        }}>
+          {description && <span>{description} </span>}
+          {totalCount !== undefined && (
+            <>
+              <span style={{ color: 'var(--color-secondary-blue)', fontWeight: '600' }}>
+                {totalCount.toLocaleString()}
+              </span>
+              개의 결과
+            </>
+          )}
+        </p>
+      )}
     </div>
     {actions && (
       <div style={{ marginLeft: '20px' }}>
