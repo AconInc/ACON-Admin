@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import type { SpotItem } from '@/types/spot.types'
 import type { TablePresetType } from './config'
 import { useSpotTableConfig, type ActionButton } from './useSpotTableConfig'
@@ -19,6 +20,7 @@ export const SpotTable = ({
   getActionsForItem,
   useBuiltInActions = false
 }: SpotTableProps) => {
+  const router = useRouter()
   const { columns, renderCell } = useSpotTableConfig({
     preset,
     actions,
@@ -26,6 +28,12 @@ export const SpotTable = ({
     useBuiltInActions
   })
 
+  const handleRowClick = (item: SpotItem, columnKey: string) => {
+    if (columnKey !== 'actions') {
+      router.push(`/spots/${item.id}/edit`)
+    }
+  }
+  
   return (
     <div style={{
       backgroundColor: 'white',
@@ -72,8 +80,10 @@ export const SpotTable = ({
                   key={column.key}
                   style={{
                     padding: '16px',
-                    textAlign: column.align || 'left'
+                    textAlign: column.align || 'left',
+                    cursor: String(column.key) !== 'actions' ? 'pointer' : 'default'
                   }}
+                  onClick={() => handleRowClick(item, column.key)}
                 >
                   {renderCell(item, column.key)}
                 </td>
