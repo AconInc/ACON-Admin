@@ -1,12 +1,20 @@
+'use client'
+
 import React from 'react';
 import Image from 'next/image';
-
-export const metadata = {
-  title: '대시보드',
-  description: '관리자 대시보드 페이지',
-};
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
+  const router = useRouter();
+
+  const handleDirectRegistration = () => {
+    router.push('/dashboard/spot-detail/create');
+  };
+
+  const handlePendingSpots = () => {
+    router.push('/dashboard/store-management/new-store');
+  };
+
   return (
     <div>
       {/* 헤더 */}
@@ -37,21 +45,35 @@ export default function DashboardPage() {
         marginTop: '100px'
       }}>
         {/* 직접 장소 등록 */}
-        <div style={{ 
+        <div 
+          onClick={handleDirectRegistration}
+          style={{ 
             position: 'relative',
             backgroundColor: 'var(--color-gray-100)',
             padding: '40px',
             borderRadius: '16px', 
             minWidth: '400px',
             display: 'flex',
-            textAlign: 'center'
-        }}>
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-gray-200)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-gray-100)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+        >
             <Image
                 src="/images/icons/ic_upload.svg"
                 alt="직접 등록 아이콘"
                 width={56}
                 height={56}
-            /><div style={{
+            />
+            <div style={{
                 marginLeft: '20px',
                 textAlign: 'left',
                 font: 'var(--font-sb-18)',
@@ -62,22 +84,37 @@ export default function DashboardPage() {
                직접 장소 등록하기
             </div>
         </div>
+
         {/* 오른쪽: 미처리된 장소 */}
-        <div style={{ 
+        <div 
+          onClick={handlePendingSpots}
+          style={{ 
             position: 'relative',
             backgroundColor: 'var(--color-gray-100)',
             padding: '40px',
             borderRadius: '16px', 
             minWidth: '400px',
             display: 'flex',
-            textAlign: 'center'
-        }}>
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-gray-200)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-gray-100)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+        >
             <Image
                 src="/images/icons/ic_picture.svg"
                 alt="미처리된 장소 아이콘"
                 width={56}
                 height={56}
-            /><div style={{
+            />
+            <div style={{
                 marginLeft: '20px',
                 textAlign: 'left',
                 font: 'var(--font-sb-18)',
