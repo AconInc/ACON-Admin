@@ -4,9 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:staging": "NODE_ENV=development next dev",
     "build": "next build",
+    "build:staging": "NODE_ENV=staging next build",
+    "build:production": "NODE_ENV=production next build",
     "start": "next start",
-    "lint": "next lint"
+    "start:staging": "NODE_ENV=staging next start",
+    "start:production": "NODE_ENV=production next start",
+    "lint": "next lint",
+    "preview": "next build && next start",
+    "clean": "rm -rf .next out",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.85.3",
