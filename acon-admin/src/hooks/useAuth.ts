@@ -1,4 +1,3 @@
-// hooks/useAuth.ts
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { loginUser, logoutUser, isAuthenticated } from '../lib/auth'
@@ -66,7 +65,6 @@ export function useAuth() {
       }
       
       setError(errorMessage)
-      throw err
     } finally {
       setIsLoading(false)
     }

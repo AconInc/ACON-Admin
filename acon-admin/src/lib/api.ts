@@ -1,9 +1,7 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'
+import { ApiErrorResponse } from '../types/ApiErrorResponse'
+import { getStoredCSRFToken } from '../utils/tokens'
 
-interface ApiErrorResponse {
-  code: number
-  message: string
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'
 
 interface FetchOptions extends RequestInit {
   requireAuth?: boolean
@@ -22,14 +20,6 @@ export class ApiError extends Error {
     this.code = code
     this.statusCode = statusCode
   }
-}
-
-/**
- * CSRF 토큰 조회
- */
-function getStoredCSRFToken(): string | null {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem('csrf_token')
 }
 
 /**
@@ -210,7 +200,7 @@ export async function apiRequestFormData<T>(
     console.log(`🚀 Form Data Request [POST] ${url}`, {
       formData: Object.fromEntries(formData.entries())
     })
-    
+
     const response = await fetch(url, config)
     
     // 응답 내용 파싱
