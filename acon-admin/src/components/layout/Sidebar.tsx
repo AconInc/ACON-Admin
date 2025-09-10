@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { useState, useRef, useEffect } from 'react' // useEffect 추가
+import { useState, useRef, useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 
 interface SubMenuItem {
   id: number
@@ -21,9 +22,13 @@ interface MenuItem {
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const submenuTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [expandedMenus, setExpandedMenus] = useState<Record<number, boolean>>({})
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  
+  const { logout } = useAuth()
   
   const menuItems: MenuItem[] = [
     { id: 1, name: 'MY홈', path: '/dashboard' },
@@ -98,6 +103,29 @@ export default function Sidebar() {
       }, 300)
     }
   }
+
+  // 로그아웃 처리 함수
+  const handleLogout = async () => {
+    if (isLoggingOut) return // 중복 실행 방지
+    
+    try {
+      setIsLoggingOut(true)
+      console.log('🚪 Sidebar: Starting logout process...')
+      
+      await logout()
+      
+      // logout 함수에서 이미 router.push('/login')을 처리하지만
+      // 혹시 모르니 추가 보장 (스택 쌓임 방지를 위해 replace 사용)
+      router.replace('/login')
+      
+    } catch (error) {
+      console.error('❌ Sidebar logout error:', error)
+      // 에러가 발생해도 로그인 페이지로 이동 (안전장치)
+      router.replace('/login')
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
   
   return (
     <div 
@@ -107,7 +135,9 @@ export default function Sidebar() {
         height: '100vh',
         padding: '20px 0',
         transition: 'width 0.3s ease',
-        position: 'relative'
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column'
       }}
     >
       {/* 토글 버튼 */}
@@ -163,7 +193,7 @@ export default function Sidebar() {
       </div>
       
       {/* 메뉴 아이템들 */}
-      <nav style={{ padding: '0 16px' }}>
+      <nav style={{ padding: '0 16px', flex: 1 }}>
         {menuItems.map((item) => {
           const isActive = pathname === item.path
           const isSubmenuActive = item.submenu?.some(sub => pathname === sub.path)
@@ -309,6 +339,56 @@ export default function Sidebar() {
           )
         })}
       </nav>
+
+      {/* 로그아웃 버튼 - 하단 고정 */}
+      <div style={{ 
+        padding: '16px', 
+        borderTop: '1px solid var(--color-gray-200)',
+        marginTop: 'auto'
+      }}>
+        <button
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: isCollapsed ? 'center' : 'flex-start',
+            gap: '12px',
+            padding: '12px 16px',
+            backgroundColor: isLoggingOut ? '#f8f9fa' : 'transparent',
+            color: isLoggingOut ? '#999' : '#dc3545',
+            border: '1px solid',
+            borderColor: isLoggingOut ? '#dee2e6' : '#dc3545',
+            borderRadius: '8px',
+            cursor: isLoggingOut ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s ease',
+            font: 'var(--font-sb-14)'
+          }}
+          onMouseOver={(e) => {
+            if (!isLoggingOut) {
+              e.currentTarget.style.backgroundColor = '#dc3545'
+              e.currentTarget.style.color = 'white'
+            }
+          }}
+          onMouseOut={(e) => {
+            if (!isLoggingOut) {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = '#dc3545'
+            }
+          }}
+          title={isCollapsed ? '로그아웃' : ''}
+        >
+          {/* 로그아웃 아이콘 */}
+          <span style={{ fontSize: '16px' }}>🚪</span>
+          
+          {!isCollapsed && (
+            <span style={{ whiteSpace: 'nowrap' }}>
+              {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+            </span>
+          )}
+        </button>
+      </div>
     </div>
   )
 }

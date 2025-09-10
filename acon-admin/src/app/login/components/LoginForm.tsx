@@ -1,17 +1,16 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function LoginForm() {
   const [id, setId] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [showPassword, setShowPassword] = useState<boolean>(false)
-  const [loading, setLoading] = useState<boolean>(false)
-  const router = useRouter()
   const isMounted = useRef(true)
-  const [error, setError] = useState<string>('');
+  
+  const { login, isLoading, error, clearError } = useAuth()
   
   // 언마운트 시 정리
   useEffect(() => {
@@ -20,29 +19,45 @@ export default function LoginForm() {
     }
   }, [])
 
+  // 입력값 변경 시 에러 클리어
+  useEffect(() => {
+    if (error && (id || password)) {
+      clearError()
+    }
+  }, [id, password, error, clearError])
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setLoading(true)
+    
+    if (!isMounted.current || isLoading) return
+    
+    console.log('📝 Form submitted with ID:', id)
     
     try {
-      // 여기서 실제 로그인 API 호출
-      // const response = await fetch('/api/auth/login', { ... })
-      
-      // 임시로 성공 처리
-      setTimeout(() => {
-        if (isMounted.current) {
-          router.push('/dashboard')
-          setLoading(false)
-          setError('');
-        }
-      }, 1000)
-    } catch (loginError) {
-      setError('아이디 또는 비밀번호가 일치하지 않습니다.');
-      if (isMounted.current) {
-        setLoading(false)
-      }
+      await login({ 
+        username: id.trim(), 
+        password: password 
+      })
+    } catch (err) {
+      // 에러는 useAuth 훅에서 처리됨
+      console.log('Form submission error handled by useAuth hook')
     }
   }
+
+  const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setId(e.target.value)
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value)
+  }
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
+  const isFormValid = id.trim().length > 0 && password.length > 0
+  const isSubmitDisabled = isLoading || !isFormValid
 
   return (
     <form onSubmit={handleSubmit}>
@@ -59,8 +74,10 @@ export default function LoginForm() {
         <input
           type="text"
           value={id}
-          onChange={(e) => setId(e.target.value)}
+          onChange={handleIdChange}
           placeholder="아이디를 입력해주세요"
+          disabled={isLoading}
+          autoComplete="username"
           style={{
             width: '100%',
             padding: '16px 20px',
@@ -68,13 +85,16 @@ export default function LoginForm() {
             borderRadius: '8px',
             boxSizing: 'border-box',
             outline: 'none',
-            backgroundColor: '#fff',
+            backgroundColor: isLoading ? '#f5f5f5' : '#fff',
             transition: 'border-color 0.2s ease',
-            font: 'var(--font-r-14)'
+            font: 'var(--font-r-14)',
+            cursor: isLoading ? 'not-allowed' : 'text'
           }}
           onFocus={(e) => {
-            e.target.style.borderColor = 'var(--color-primary-blue)'
-            e.target.style.borderWidth = '2px'
+            if (!isLoading) {
+              e.target.style.borderColor = 'var(--color-primary-blue)'
+              e.target.style.borderWidth = '2px'
+            }
           }}
           onBlur={(e) => {
             e.target.style.borderColor = 'var(--color-gray-300)'
@@ -98,8 +118,10 @@ export default function LoginForm() {
           <input
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
             placeholder="비밀번호를 입력해주세요"
+            disabled={isLoading}
+            autoComplete="current-password"
             style={{
               width: '100%',
               padding: '16px 56px 16px 20px',
@@ -107,12 +129,15 @@ export default function LoginForm() {
               borderRadius: '8px',
               boxSizing: 'border-box',
               outline: 'none',
-              backgroundColor: '#fff',
-              font: 'var(--font-r-14)'
+              backgroundColor: isLoading ? '#f5f5f5' : '#fff',
+              font: 'var(--font-r-14)',
+              cursor: isLoading ? 'not-allowed' : 'text'
             }}
             onFocus={(e) => {
-            e.target.style.borderColor = 'var(--color-primary-blue)'
-            e.target.style.borderWidth = '2px'
+              if (!isLoading) {
+                e.target.style.borderColor = 'var(--color-primary-blue)'
+                e.target.style.borderWidth = '2px'
+              }
             }}
             onBlur={(e) => {
               e.target.style.borderColor = 'var(--color-gray-300)'
@@ -122,7 +147,9 @@ export default function LoginForm() {
           />
           <button
             type="button"
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={togglePasswordVisibility}
+            disabled={isLoading}
+            aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
             style={{
               position: 'absolute',
               right: '20px',
@@ -130,11 +157,12 @@ export default function LoginForm() {
               transform: 'translateY(-50%)',
               background: 'none',
               border: 'none',
-              cursor: 'pointer',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
               padding: '4px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              opacity: isLoading ? 0.5 : 1
             }}
           >
             <Image
@@ -148,7 +176,8 @@ export default function LoginForm() {
             />
           </button>
         </div>
-        {/* 에러 메시지 - 여기가 올바른 위치 */}
+        
+        {/* 에러 메시지 */}
         {error && (
           <div 
             style={{ 
@@ -169,31 +198,30 @@ export default function LoginForm() {
       {/* 로그인 버튼 */}
       <button
         type="submit"
-        disabled={loading}
+        disabled={isSubmitDisabled}
         style={{
           width: '100%',
           padding: '16px',
-          backgroundColor: '#333',
+          backgroundColor: isSubmitDisabled ? '#ccc' : '#333',
           color: 'white',
           border: 'none',
           borderRadius: '8px',
-          cursor: loading ? 'not-allowed' : 'pointer',
-          opacity: loading ? 0.7 : 1,
+          cursor: isSubmitDisabled ? 'not-allowed' : 'pointer',
           transition: 'all 0.2s ease',
           font: 'var(--font-sb-18)'
         }}
         onMouseOver={(e) => {
-          if (!loading) {
+          if (!isSubmitDisabled) {
             e.currentTarget.style.backgroundColor = '#000'
           }
         }}
         onMouseOut={(e) => {
-          if (!loading) {
+          if (!isSubmitDisabled) {
             e.currentTarget.style.backgroundColor = '#333'
           }
         }}
       >
-        {loading ? '로그인 중...' : '로그인'}
+        {isLoading ? '로그인 중...' : '로그인'}
       </button>
     </form>
   )
