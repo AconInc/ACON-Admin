@@ -222,7 +222,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
         await spotDetailService.uploadImageToS3(image.file, presignedData.preSignedUrl)
 
         // 3. 업로드된 파일의 fileUrl을 fileName으로 추출
-        const fileName = presignedData.fileUrl.split('/').pop() || presignedData.fileUrl
+        const fileName = presignedData.fileUrl?.split('/').pop() || 'unknown-file'
         uploadedFileNames.push(fileName)
         
         console.log('✅ Image uploaded successfully:', fileName)

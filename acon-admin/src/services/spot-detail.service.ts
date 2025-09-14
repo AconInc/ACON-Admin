@@ -11,12 +11,6 @@ interface PresignedUrlResponse {
   preSignedUrl: string // S3 업로드용 Presigned URL
 }
 
-// PresignedURL API 요청 타입  
-interface PresignedUrlRequest {
-  imageType: 'SPOT' | 'MENUBOARD'
-  originalFileName: string
-}
-
 class SpotDetailService {
   private baseUrl = '/admin/spots'
 
@@ -27,10 +21,7 @@ class SpotDetailService {
       const response = await apiRequest<PresignedUrlResponse>(`/admin/images/presigned-url?imageType=${imageType}`, {
         method: 'POST',
         requireAuth: true,
-        body: JSON.stringify({ 
-          imageType: imageType,
-          originalFileName: originalFileName 
-        }),
+        body: JSON.stringify({ imageType, originalFileName }),
       })
       
       console.log('✅ Presigned URL obtained successfully')

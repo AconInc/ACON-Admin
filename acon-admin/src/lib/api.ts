@@ -134,6 +134,7 @@ export async function apiRequest<T>(
     })
     
     // 응답 내용 파싱
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let responseData: any = null
     const contentType = response.headers.get('content-type')
     
@@ -269,6 +270,7 @@ export async function apiRequestFormData<T>(
     }
     
     // 응답 내용 파싱
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let responseData: any = null
     const contentType = response.headers.get('content-type')
     

@@ -2,7 +2,6 @@ import { apiRequest } from '@/lib/api'
 import type { 
   SpotListResponse, 
   SpotFilters,
-  SpotItem,
   SpotStatus
 } from '@/types/spot.types'
 

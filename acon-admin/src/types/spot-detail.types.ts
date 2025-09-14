@@ -78,6 +78,6 @@ export interface SpotCreateRequest {
   spotImageList?: string[]
 }
 
-export interface SpotUpdateRequest extends SpotCreateRequest { }
+export type SpotUpdateRequest = SpotCreateRequest
 
 export type PageMode = 'create' | 'edit'

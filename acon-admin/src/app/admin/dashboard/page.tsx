@@ -36,11 +36,11 @@ export default function DashboardPage() {
   }, []);
 
   const handleDirectRegistration = () => {
-    router.push('/dashboard/spot-detail/create');
+    router.push('/admin/dashboard/spot-detail/create');
   };
 
   const handlePendingSpots = () => {
-    router.push('/dashboard/store-management/new-store');
+    router.push('/admin/dashboard/store-management/new-store');
   };
 
   return (
