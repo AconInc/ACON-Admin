@@ -7,7 +7,7 @@ export interface ErrorStateProps {
 
 export const ErrorState = ({ 
   onRetry, 
-  message = "데이터를 불러오는데 실패했습니다." 
+  message = "데이터를 불러오는데 실패했습니다. 재시도 후에도 문제가 지속되면 로그아웃 후 재로그인해주세요." 
 }: ErrorStateProps) => (
   <div style={{
     border: '1px solid var(--color-gray-300)',
@@ -27,7 +27,7 @@ export const ErrorState = ({
         cursor: 'pointer'
       }}
     >
-      다시 시도
+      재시도
     </button>
   </div>
 )
