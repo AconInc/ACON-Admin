@@ -1,7 +1,7 @@
 import { ApiErrorResponse } from '../types/ApiErrorResponse'
 import { getStoredCSRFToken } from '../utils/tokens'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 interface FetchOptions extends RequestInit {
   requireAuth?: boolean
@@ -19,6 +19,24 @@ export class ApiError extends Error {
     this.name = 'ApiError'
     this.code = code
     this.statusCode = statusCode
+  }
+}
+
+/**
+ * 쿠키 상태 디버깅 함수 - localStorage 기반
+ */
+function debugCookies(): void {
+  if (typeof window !== 'undefined') {
+    // document.cookie는 Path 문제로 읽기 포기
+    console.log('🍪 Cookie reading skipped (Path=/admin issue)')
+    
+    // localStorage의 CSRF 토큰만 확인
+    const storedToken = localStorage.getItem('csrf_token')
+    console.log('🔑 Stored CSRF token:', storedToken ? `${storedToken.substring(0, 10)}...` : 'NOT FOUND')
+    
+    // 현재 페이지 경로 확인
+    console.log('📍 Current path:', window.location.pathname)
+    console.log('🔄 Note: JSESSIONID will be sent automatically via credentials: "include"')
   }
 }
 
@@ -68,8 +86,12 @@ export async function apiRequest<T>(
   
   const url = `${API_BASE_URL}${endpoint}`
   
+  // 요청 전 상태 디버깅 (간소화)
+  console.log(`🚀 API Request [${fetchOptions.method || 'GET'}] ${url}`)
+  debugCookies()
+  
   const config: RequestInit = {
-    credentials: 'include', // 쿠키 포함
+    credentials: 'include', // 쿠키 포함 (JSESSIONID 자동 전송)
     headers: {
       'Content-Type': 'application/json',
       ...fetchOptions.headers,
@@ -77,7 +99,7 @@ export async function apiRequest<T>(
     ...fetchOptions,
   }
 
-  // 인증이 필요한 경우 CSRF 토큰 추가
+  // 인증이 필요한 경우 CSRF 토큰 추가 (localStorage에서만)
   if (requireAuth) {
     const csrfToken = getStoredCSRFToken()
     if (csrfToken) {
@@ -85,18 +107,31 @@ export async function apiRequest<T>(
         ...config.headers,
         'X-XSRF-TOKEN': csrfToken,
       }
+      console.log('🔑 CSRF token added to header:', `${csrfToken.substring(0, 10)}...`)
     } else {
       console.error('CSRF token not found for authenticated request')
       throw new ApiError(401, 'Authentication required', 401)
     }
   }
 
-  try {
-    console.log(`🚀 API Request [${config.method || 'GET'}] ${url}`, {
-      body: config.body || 'No body'
-    })
+  // 요청 상세 로그
+  console.log('📤 Request Details:', {
+    url,
+    method: config.method || 'GET',
+    credentials: config.credentials,
+    headers: config.headers,
+    body: config.body
+  })
 
+  try {
     const response = await fetch(url, config)
+    
+    // 응답 상세 로그
+    console.log('📥 Response Details:', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    })
     
     // 응답 내용 파싱
     let responseData: any = null
@@ -104,12 +139,24 @@ export async function apiRequest<T>(
     
     if (contentType?.includes('application/json')) {
       responseData = await response.json()
+      console.log('📋 Response Body:', responseData)
     }
 
     // 상태 코드별 처리
     if (response.status === 200) {
       console.log(`✅ API Success [${response.status}] ${endpoint}`)
       return responseData || (response as unknown as T)
+    } else if (response.status === 401) {
+      const errorData: ApiErrorResponse = responseData || {
+        code: response.status,
+        message: response.statusText
+      }
+      
+      console.error(`🚫 Authentication failed [${response.status}] ${endpoint}`)
+      console.error('🔍 Possible reasons: JSESSIONID not sent or session expired')
+      console.error('💡 Note: JSESSIONID should be sent automatically via credentials: include')
+      
+      throw new ApiError(errorData.code, errorData.message, response.status)
     } else if (response.status === 403) {
       // 403 Forbidden - CSRF 관련 에러 처리
       const errorData: ApiErrorResponse = responseData || {
@@ -196,12 +243,30 @@ export async function apiRequestFormData<T>(
     credentials: 'include',
   }
 
-  try {
-    console.log(`🚀 Form Data Request [POST] ${url}`, {
-      formData: Object.fromEntries(formData.entries())
-    })
+  console.log('🚀 Form Data Request Details:', {
+    url,
+    method: 'POST',
+    headers: config.headers,
+    credentials: config.credentials,
+    formData: Object.fromEntries(formData.entries())
+  })
 
+  try {
     const response = await fetch(url, config)
+    
+    console.log('📥 Form Response Details:', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    })
+    
+    // 로그인 성공 후 쿠키 확인
+    if (response.status === 200 && endpoint === '/admin/login') {
+      console.log('🎉 Login successful! Checking cookies after login...')
+      setTimeout(() => {
+        debugCookies()
+      }, 100) // 쿠키 설정 대기
+    }
     
     // 응답 내용 파싱
     let responseData: any = null
@@ -209,6 +274,7 @@ export async function apiRequestFormData<T>(
     
     if (contentType?.includes('application/json')) {
       responseData = await response.json()
+      console.log('📋 Form Response Body:', responseData)
     }
 
     // 상태 코드별 처리
