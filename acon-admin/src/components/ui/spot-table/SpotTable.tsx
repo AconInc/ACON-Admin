@@ -29,10 +29,10 @@ export const SpotTable = ({
   })
 
   const handleRowClick = (item: SpotItem, columnKey: string) => {
-    if (columnKey !== 'actions') {
-      router.push(`/spots/${item.id}/edit`)
-    }
+  if (columnKey !== 'actions') {
+    router.push(`/admin/dashboard/spot-detail/edit?spotId=${item.id}`)
   }
+}
   
   return (
     <div style={{
