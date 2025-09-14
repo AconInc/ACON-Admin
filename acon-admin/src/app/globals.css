@@ -1,0 +1,52 @@
+:root {
+  /* 그레이스케일 */
+  --color-black: #111111;
+  --color-gray-800: #374553;
+  --color-gray-700: #646F7C;
+  --color-gray-600: #ACACAC;
+  --color-gray-500: #9FA6B2;
+  --color-gray-400: #C5C8CE;
+  --color-gray-300: #E4E4E7;
+  --color-gray-200: #F7F8F9;
+  --color-gray-100: #FAFAFA;
+  --color-white: #FFFFFF;
+  
+  /* Primary 컬러 */
+  --color-primary-blue: #0044FF;
+  --color-primary-red: #FF2C51;
+  
+  /* Secondary 컬러 */
+  --color-secondary-orange: #FF6622;
+  --color-secondary-lightOrange: #FFECE4;
+  --color-secondary-green: #4FC938;
+  --color-secondary-lightGreen: #EAF9E7;
+  --color-secondary-blue: #3E57FF;
+  --color-secondary-yellow: #FFD324;
+    --color-secondary-lightYellow: #FFFAE5;
+  --color-secondary-skyBlue: #E1E8FA;
+  --color-secondary-purple: #5b21b6;
+  --color-secondary-brown: #92400e;
+  --color-secondary-lightBrown: #FFCC99;
+
+  /* 폰트 */
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-primary: var(--font-inter), system-ui, -apple-system, sans-serif;
+  
+  /* 폰트 스타일 */
+  --font-sb-24: 600 1.5rem/1.4 var(--font-primary);
+  --font-sb-18: 600 1.125rem/1.4 var(--font-primary);
+  --font-r-18: 400 1.125rem/1.4 var(--font-primary);
+  --font-sb-16: 600 1rem/1.4 var(--font-primary);
+  --font-sb-14: 600 0.875rem/1.4 var(--font-primary);
+  --font-r-14: 400 0.875rem/1.4 var(--font-primary);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
