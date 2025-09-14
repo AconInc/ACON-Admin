@@ -33,7 +33,7 @@ export function useAuth() {
         // CSRF 에러는 이미 handleCSRFError에서 처리되어 리다이렉트됨
         // 하지만 로그인 API에서는 리다이렉트하지 않으므로 에러 메시지 표시
         if ([40301, 40302, 40303].includes(err.code)) {
-          errorMessage = '보안 오류가 발생했습니다. 페이지를 새로고침 후 다시 시도해주세요.'
+          errorMessage = '보안 오류가 발생했습니다. 새로고침 / 브라우저 종료 / 사파리 외 다른 브라우저로 전환 후 다시 시도해주세요.'
         } else {
           // 일반적인 로그인 에러 처리
           switch (err.code) {
