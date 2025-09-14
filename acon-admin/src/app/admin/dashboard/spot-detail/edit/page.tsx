@@ -1,12 +1,12 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import SpotForm from '@/components/ui/spot-detail/SpotForm'
 
 export default function SpotEditPage() {
-  const params = useParams()
-  const spotId = params.spotId ? parseInt(params.spotId as string) : undefined
-
+  const searchParams = useSearchParams()
+  const spotId = searchParams.get('spotId') ? parseInt(searchParams.get('spotId') as string) : undefined
+  
   if (!spotId) {
     return (
       <div style={{

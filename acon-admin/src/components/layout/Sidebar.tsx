@@ -31,17 +31,17 @@ export default function Sidebar() {
   const { logout } = useAuth()
   
   const menuItems: MenuItem[] = [
-    { id: 1, name: 'MY홈', path: '/dashboard' },
-    { id: 2, name: '유저 관리', path: '/dashboard/user-management' },
+    { id: 1, name: 'MY홈', path: '/admin/dashboard' },
+    { id: 2, name: '유저 관리', path: '/admin/dashboard/user-management' },
     { 
       id: 3, 
       name: '장소 관리', 
-      path: '/dashboard/store-management',
+      path: '/admin/dashboard/store-management',
       hasSubmenu: true,
       submenu: [
-        { id: 31, name: '전체 장소', path: '/dashboard/store-management/all-store' },
-        { id: 32, name: '신규 장소', path: '/dashboard/store-management/new-store' },
-        { id: 33, name: '휴지통', path: '/dashboard/store-management/trash-store' }
+        { id: 31, name: '전체 장소', path: '/admin/dashboard/store-management/all-store' },
+        { id: 32, name: '신규 장소', path: '/admin/dashboard/store-management/new-store' },
+        { id: 33, name: '휴지통', path: '/admin/dashboard/store-management/trash-store' }
       ]
     }
   ]
