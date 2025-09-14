@@ -1,99 +1,118 @@
+import { apiRequest } from '@/lib/api'
 import type { 
   SpotDetailResponse, 
   SpotCreateRequest, 
-  SpotUpdateRequest,
-  PresignedUrlResponse
+  SpotUpdateRequest
 } from '@/types/spot-detail.types'
 
-class SpotDetailService {
-  private baseUrl = '/api/admin/spots'
+// PresignedURL API 응답 타입
+interface PresignedUrlResponse {
+  fileUrl: string      // 실제 파일 URL
+  preSignedUrl: string // S3 업로드용 Presigned URL
+}
 
-  // Presigned URL 획득
-  async getPresignedUrl(imageType: 'SPOT' | 'MENUBOARD'): Promise<PresignedUrlResponse> {
+class SpotDetailService {
+  private baseUrl = '/admin/spots'
+
+  async getPresignedUrl(imageType: 'SPOT' | 'MENUBOARD', originalFileName: string): Promise<PresignedUrlResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/presigned-url?imageType=${imageType}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      console.log('🔄 Getting presigned URL for:', imageType, originalFileName)
+
+      const response = await apiRequest<PresignedUrlResponse>(`/admin/images/presigned-url?imageType=${imageType}`, {
+        method: 'POST',
+        requireAuth: true,
+        body: JSON.stringify({ imageType, originalFileName }),
       })
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      return await response.json()
+      
+      console.log('✅ Presigned URL obtained successfully')
+      console.log('📋 File URL:', response.fileUrl)
+      return response
+      
     } catch (error) {
-      console.error('Presigned URL 획득 실패:', error)
+      console.error('❌ Presigned URL 획득 실패:', error)
       throw error
     }
   }
 
-  // 장소 상세 정보 조회
+  // S3에 직접 이미지 업로드
+  async uploadImageToS3(file: File, presignedUrl: string): Promise<void> {
+    try {
+      console.log('🔄 Uploading image to S3:', file.name)
+      
+      const uploadResponse = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error(`S3 upload failed: ${uploadResponse.status}`)
+      }
+
+      console.log('✅ Image uploaded to S3 successfully')
+      
+    } catch (error) {
+      console.error('❌ S3 이미지 업로드 실패:', error)
+      throw error
+    }
+  }
+
+  // 장소 상세 정보 조회 - GET /admin/spots/{spotId}
   async getSpotDetail(spotId: number): Promise<SpotDetailResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/${spotId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      console.log('🔄 Fetching spot detail for ID:', spotId)
+      
+      const response = await apiRequest<SpotDetailResponse>(`${this.baseUrl}/${spotId}`, {
+        method: 'GET',
+        requireAuth: true,
       })
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      return await response.json()
+      
+      console.log('✅ Spot detail fetched successfully:', response.spotName)
+      return response
+      
     } catch (error) {
-      console.error('장소 상세 정보 조회 실패:', error)
+      console.error('❌ 장소 상세 정보 조회 실패:', error)
       throw error
     }
   }
 
-  // 장소 등록
+  // 장소 생성 - POST
   async createSpot(data: SpotCreateRequest): Promise<{ spotId: number }> {
     try {
-      const response = await fetch(this.baseUrl, {
+      console.log('🔄 Creating new spot:', data.spotName)
+      
+      const response = await apiRequest<{ spotId: number }>(this.baseUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        requireAuth: true,
         body: JSON.stringify(data),
       })
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      return await response.json()
+      
+      console.log('✅ Spot created successfully with ID:', response.spotId)
+      return response
+      
     } catch (error) {
-      console.error('장소 등록 실패:', error)
+      console.error('❌ 장소 생성 실패:', error)
       throw error
     }
   }
 
-  // 장소 수정
-  async updateSpot(data: SpotUpdateRequest): Promise<void> {
+  // 장소 수정 - PATCH
+  async updateSpot(spotId: number, data: SpotUpdateRequest): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/${data.spotId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      console.log('🔄 Updating spot ID:', spotId, 'with data:', data)
+      
+      await apiRequest<void>(`${this.baseUrl}/${spotId}`, {
+        method: 'PATCH',
+        requireAuth: true,
         body: JSON.stringify(data),
       })
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+      
+      console.log('✅ Spot updated successfully')
+      
     } catch (error) {
-      console.error('장소 수정 실패:', error)
-      throw error
-    }
-  }
-
-  // 장소 삭제
-  async deleteSpot(spotId: number): Promise<void> {
-    try {
-      const response = await fetch(`${this.baseUrl}/${spotId}`, {
-        method: 'DELETE',
-      })
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-    } catch (error) {
-      console.error('장소 삭제 실패:', error)
+      console.error('❌ 장소 수정 실패:', error)
       throw error
     }
   }

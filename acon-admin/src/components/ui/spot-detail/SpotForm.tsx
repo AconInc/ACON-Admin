@@ -17,6 +17,7 @@ import { spotDetailService } from '@/services/spot-detail.service'
 import { Breadcrumb, PageHeader } from '@/components/layout'
 import { TagButton } from '@/components/ui/TagButton'
 import { LoadingSpinner } from '@/components/ui'
+import { useRouter } from 'next/navigation';
 
 interface SpotFormProps {
   mode: PageMode
@@ -29,6 +30,7 @@ interface LocalImage {
 }
 
 export default function SpotForm({ mode, spotId }: SpotFormProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false)
   const [spotData, setSpotData] = useState<SpotDetailResponse | null>(null)
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('MONDAY')
@@ -126,7 +128,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
         spotImageList: data.spotImageList || []
       })
       
-      // 기존 이미지 fileName들 저장
+      // 기존 이미지 URL들 저장
       setExistingMenuImages(data.menuboardImageList || [])
       setExistingSpotImages(data.spotImageList || [])
     } catch (error) {
@@ -207,30 +209,26 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     }))
   }
 
+  // S3에 이미지 업로드 (PresignedURL 방식)
   const uploadImagesToS3 = async (images: LocalImage[], imageType: 'SPOT' | 'MENUBOARD'): Promise<string[]> => {
     const uploadedFileNames: string[] = []
     
     for (const image of images) {
       try {
-        // 1. Presigned URL 획득
-        const presignedData = await spotDetailService.getPresignedUrl(imageType)
+        // 1. Presigned URL 획득 (originalFileName 포함)
+        const presignedData = await spotDetailService.getPresignedUrl(imageType, image.file.name)
         
-        // 2. S3에 직접 업로드
-        const uploadResponse = await fetch(presignedData.presignedUrl, {
-          method: 'PUT',
-          body: image.file,
-          headers: {
-            'Content-Type': image.file.type,
-          },
-        })
+        // 2. S3에 직접 업로드 (PUT 메서드, 바이너리 방식)
+        await spotDetailService.uploadImageToS3(image.file, presignedData.preSignedUrl)
 
-        if (!uploadResponse.ok) {
-          throw new Error('이미지 업로드 실패')
-        }
-
-        uploadedFileNames.push(presignedData.fileName)
+        // 3. 업로드된 파일의 fileUrl을 fileName으로 추출
+        const fileName = presignedData.fileUrl?.split('/').pop() || 'unknown-file'
+        uploadedFileNames.push(fileName)
+        
+        console.log('✅ Image uploaded successfully:', fileName)
+        
       } catch (error) {
-        console.error('이미지 업로드 실패:', error)
+        console.error('❌ 이미지 업로드 실패:', error)
         throw error
       }
     }
@@ -264,30 +262,20 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
       }
 
       if (mode === 'create') {
-        await spotDetailService.createSpot(submitData)
+        // POST API
+        const result = await spotDetailService.createSpot(submitData)
+        console.log('새로 생성된 장소 ID:', result.spotId)
         alert('장소가 등록되었습니다.')
+        router.back()
       } else if (spotId) {
-        await spotDetailService.updateSpot({ ...submitData, spotId })
+        // PATCH API
+        await spotDetailService.updateSpot(spotId, submitData)
         alert('장소가 수정되었습니다.')
+        router.back()
       }
     } catch (error) {
       console.error('저장 실패:', error)
       alert('저장에 실패했습니다.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDelete = async () => {
-    if (!spotId || !confirm('정말 삭제하시겠습니까?')) return
-    
-    setLoading(true)
-    try {
-      await spotDetailService.deleteSpot(spotId)
-      alert('장소가 삭제되었습니다.')
-    } catch (error) {
-      console.error('삭제 실패:', error)
-      alert('삭제에 실패했습니다.')
     } finally {
       setLoading(false)
     }
@@ -330,7 +318,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     type: 'menu' | 'spot'
   ) => {
     const allImages = [
-      ...existingImages.map(fileName => `https://cdn.example.com/images/${fileName}`), // 기존 이미지 URL 변환
+      ...existingImages,
       ...newImages.map(img => img.url)
     ]
 
@@ -376,7 +364,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     const gridItems = []
 
     // 기존 이미지들
-    existingImages.forEach((fileName, index) => {
+    existingImages.forEach((imageUrl, index) => {
       gridItems.push(
         <div
           key={`existing-${index}`}
@@ -394,7 +382,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
           onClick={() => openPreview(allImages, index, type)}
         >
           <img
-            src={`https://cdn.example.com/images/${fileName}`}
+            src={imageUrl}
             alt={`${type} ${index + 1}`}
             style={{
               maxWidth: '100%',
@@ -572,7 +560,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
             </div>
           ) : (
             <div style={{ fontSize: '16px', color: 'var(--color-black)', fontWeight: '800' }}>
-              aconadmin
+              관리자 AconAdmin
             </div>
           )}
         </div>
@@ -697,7 +685,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                     fontSize: '14px',
                     boxSizing: 'border-box'
                   }}
-                  placeholder="56"
+                  placeholder="도토리 개수를 입력하세요"
                 />
               </div>
               <div>
@@ -725,7 +713,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                     fontSize: '14px',
                     boxSizing: 'border-box'
                   }}
-                  placeholder="56"
+                  placeholder="도토리 개수를 입력하세요"
                 />
               </div>
             </div>
@@ -966,7 +954,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                     type="number"
                     value={formData.signatureMenuList[index]?.price ?? ''}
                     onChange={(e) => updateSignatureMenu(index, 'price', e.target.value === '' ? 0 : parseInt(e.target.value))}
-                    placeholder="5500"
+                    placeholder="가격을 입력하세요 (원)"
                     style={{
                       padding: '8px',
                       border: '1px solid var(--color-gray-400)',
@@ -1047,26 +1035,6 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
           justifyContent: 'space-between',
           alignItems: 'center',
         }}>
-          <div>
-            {mode === 'edit' && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#fee2e2',
-                  color: '#dc2626',
-                  border: '1px solid #fecaca',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
-              >
-                삭제
-              </button>
-            )}
-          </div>
-          
           <div style={{ 
             display: 'flex', 
             justifyContent: 'center',

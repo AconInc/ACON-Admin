@@ -16,7 +16,10 @@ export const SpotActions = ({ item }: SpotActionsProps) => {
     setActionMessage(message)
   }
 
-  const handleStatusChange = (newStatus: SpotStatus, successMessage: string) => {
+  const handleStatusChange = (event: React.MouseEvent, newStatus: SpotStatus, successMessage: string) => {
+    // 이벤트 전파 방지 - 부모의 handleRowClick 실행 방지
+    event.stopPropagation()
+    
     updateStatusMutation.mutate(
       { id: item.id, status: newStatus },
       {
@@ -45,7 +48,7 @@ export const SpotActions = ({ item }: SpotActionsProps) => {
         return (
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
             <button
-              onClick={() => handleStatusChange('DISCARDED', '휴지통 처리 완료!')}
+              onClick={(e) => handleStatusChange(e, 'DISCARDED', '휴지통 처리 완료!')}
               style={{
                 padding: '4px 8px',
                 fontSize: '12px',
@@ -60,7 +63,7 @@ export const SpotActions = ({ item }: SpotActionsProps) => {
               휴지통
             </button>
             <button
-              onClick={() => handleStatusChange('ACTIVE', '활성화 처리 완료!')}
+              onClick={(e) => handleStatusChange(e, 'ACTIVE', '활성화 처리 완료!')}
               style={{
                 padding: '4px 8px',
                 fontSize: '12px',
@@ -81,7 +84,7 @@ export const SpotActions = ({ item }: SpotActionsProps) => {
         return (
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
             <button
-              onClick={() => handleStatusChange('DISCARDED', '휴지통 처리 완료!')}
+              onClick={(e) => handleStatusChange(e, 'DISCARDED', '휴지통 처리 완료!')}
               style={{
                 padding: '4px 8px',
                 fontSize: '12px',
@@ -96,7 +99,7 @@ export const SpotActions = ({ item }: SpotActionsProps) => {
               휴지통
             </button>
             <button
-              onClick={() => handleStatusChange('INACTIVE', '비활성화 처리 완료!')}
+              onClick={(e) => handleStatusChange(e, 'INACTIVE', '비활성화 처리 완료!')}
               style={{
                 padding: '4px 8px',
                 fontSize: '12px',
@@ -117,7 +120,7 @@ export const SpotActions = ({ item }: SpotActionsProps) => {
         return (
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
             <button
-              onClick={() => handleStatusChange('DISCARDED', '휴지통 처리 완료!')}
+              onClick={(e) => handleStatusChange(e, 'DISCARDED', '휴지통 처리 완료!')}
               style={{
                 padding: '4px 8px',
                 fontSize: '12px',
@@ -132,7 +135,7 @@ export const SpotActions = ({ item }: SpotActionsProps) => {
               휴지통
             </button>
             <button
-              onClick={() => handleStatusChange('ACTIVE', '활성화 처리 완료!')}
+              onClick={(e) => handleStatusChange(e, 'ACTIVE', '활성화 처리 완료!')}
               style={{
                 padding: '4px 8px',
                 fontSize: '12px',
@@ -152,7 +155,7 @@ export const SpotActions = ({ item }: SpotActionsProps) => {
         return (
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
             <button
-              onClick={() => handleStatusChange('INACTIVE', '비활성화 처리 완료!')}
+              onClick={(e) => handleStatusChange(e, 'INACTIVE', '비활성화 처리 완료!')}
               style={{
                 padding: '4px 8px',
                 fontSize: '12px',
@@ -167,7 +170,7 @@ export const SpotActions = ({ item }: SpotActionsProps) => {
               비활성화
             </button>
             <button
-              onClick={() => handleStatusChange('ACTIVE', '활성화 처리 완료!')}
+              onClick={(e) => handleStatusChange(e, 'ACTIVE', '활성화 처리 완료!')}
               style={{
                 padding: '4px 8px',
                 fontSize: '12px',

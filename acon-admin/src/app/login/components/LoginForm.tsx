@@ -12,26 +12,16 @@ export default function LoginForm() {
   
   const { login, isLoading, error, clearError } = useAuth()
   
-  // 언마운트 시 정리
   useEffect(() => {
     return () => {
       isMounted.current = false
     }
   }, [])
 
-  // 입력값 변경 시 에러 클리어
-  useEffect(() => {
-    if (error && (id || password)) {
-      clearError()
-    }
-  }, [id, password, error, clearError])
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
     if (!isMounted.current || isLoading) return
-    
-    console.log('📝 Form submitted with ID:', id)
     
     try {
       await login({ 
@@ -39,17 +29,22 @@ export default function LoginForm() {
         password: password 
       })
     } catch (err) {
-      // 에러는 useAuth 훅에서 처리됨
       console.log('Form submission error handled by useAuth hook')
     }
   }
 
   const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setId(e.target.value)
+    if (error) {
+      clearError()
+    }
   }
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value)
+    if (error) {
+      clearError()
+    }
   }
 
   const togglePasswordVisibility = () => {
@@ -61,7 +56,6 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* ID 입력 필드 */}
       <div style={{ marginBottom: '24px', textAlign: 'left' }}>
         <label style={{ 
           display: 'block', 
@@ -104,7 +98,6 @@ export default function LoginForm() {
         />
       </div>
       
-      {/* Password 입력 필드 */}
       <div style={{ marginBottom: '32px', textAlign: 'left' }}>
         <label style={{ 
           display: 'block', 
@@ -167,7 +160,7 @@ export default function LoginForm() {
           >
             <Image
               src={showPassword ? "/images/icons/ic_eye_open.svg" : "/images/icons/ic_eye_closed.svg"}
-              alt={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+              alt={showPassword ? "비밀번호 보기" : "비밀번호 숨기기"}
               width={20}
               height={20}
               style={{
@@ -177,11 +170,11 @@ export default function LoginForm() {
           </button>
         </div>
         
-        {/* 에러 메시지 */}
         {error && (
           <div 
             style={{ 
               color: 'var(--color-primary-red)', 
+              backgroundColor: 'transparent',
               font: 'var(--font-r-14)',
               marginTop: '8px',
               display: 'flex',
@@ -195,7 +188,6 @@ export default function LoginForm() {
         )}
       </div>
       
-      {/* 로그인 버튼 */}
       <button
         type="submit"
         disabled={isSubmitDisabled}

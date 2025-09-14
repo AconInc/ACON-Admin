@@ -1,7 +1,7 @@
 // lib/auth.ts
 import { apiRequest, apiRequestFormData } from './api'
 import { getStoredCSRFToken, storeCSRFToken, clearStoredTokens } from '../utils/tokens'
-import { CSRFResponse, LoginCredentials, LoginResponse } from '../types/auth'
+import { CSRFResponse, LoginCredentials } from '../types/auth'
 
 /**
  * CSRF 토큰 발급
@@ -44,7 +44,7 @@ export async function loginUser(credentials: LoginCredentials): Promise<void> {
 
   // 3. 로그인 요청
   console.log('📝 Step 3: Sending login request')
-  await apiRequestFormData<LoginResponse>(
+  await apiRequestFormData<void>(
     '/admin/login',
     formData,
     {

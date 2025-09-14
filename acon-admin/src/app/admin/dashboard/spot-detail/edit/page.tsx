@@ -1,12 +1,13 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import SpotForm from '@/components/ui/spot-detail/SpotForm'
 
-export default function SpotEditPage() {
-  const params = useParams()
-  const spotId = params.spotId ? parseInt(params.spotId as string) : undefined
-
+function SpotEditPageContent() {
+  const searchParams = useSearchParams()
+  const spotId = searchParams.get('spotId') ? parseInt(searchParams.get('spotId') as string) : undefined
+  
   if (!spotId) {
     return (
       <div style={{
@@ -23,4 +24,12 @@ export default function SpotEditPage() {
   }
 
   return <SpotForm mode="edit" spotId={spotId} />
+}
+
+export default function SpotEditPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SpotEditPageContent />
+    </Suspense>
+  )
 }

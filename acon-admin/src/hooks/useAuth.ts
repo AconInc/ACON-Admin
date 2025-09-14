@@ -23,7 +23,7 @@ export function useAuth() {
     try {
       await loginUser(credentials)
       console.log('🎉 useAuth: Login successful, redirecting to dashboard')
-      router.push('/dashboard')
+      router.push('/admin/dashboard')
     } catch (err) {
       console.error('❌ useAuth: Login failed:', err)
       
