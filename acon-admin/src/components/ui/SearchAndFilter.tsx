@@ -133,10 +133,11 @@ export const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
             padding: '12px 20px',
             fontSize: '14px',
             backgroundColor: filters.status?.length || filters.missingField ? 
-              'var(--color-primary-blue)' : 'var(--color-gray-100)',
+              'var(--color-primary-blue)' : 'var(--color-white)',
             color: filters.status?.length || filters.missingField ? 
-              'white' : 'var(--color-gray-600)',
-            border: 'none',
+              'var(--color-white)' : 'var(--color-black)',
+            border: filters.status?.length || filters.missingField ? 
+              'none' : '1px solid var(--color-gray-300)',
             borderRadius: '8px',
             cursor: 'pointer',
             fontWeight: '500',
