@@ -38,6 +38,10 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
   const [spotImages, setSpotImages] = useState<LocalImage[]>([])
   const [existingMenuImages, setExistingMenuImages] = useState<string[]>([])
   const [existingSpotImages, setExistingSpotImages] = useState<string[]>([])
+  const [dragOver, setDragOver] = useState<{ menu: boolean; spot: boolean }>({
+    menu: false,
+    spot: false
+  })
   const [previewModal, setPreviewModal] = useState<{
     isOpen: boolean
     images: string[]
@@ -138,11 +142,12 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     }
   }
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'menu' | 'spot') => {
-    const files = event.target.files
+  const processFiles = (files: FileList | null, type: 'menu' | 'spot') => {
     if (!files) return
 
     Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) return
+      
       const reader = new FileReader()
       reader.onload = (e) => {
         const url = e.target?.result as string
@@ -156,9 +161,39 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
       }
       reader.readAsDataURL(file)
     })
-    
+  }
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'menu' | 'spot') => {
+    processFiles(event.target.files, type)
     // input 초기화
     event.target.value = ''
+  }
+
+  // 드래그 앤 드롭 핸들러들
+  const handleDragEnter = (e: React.DragEvent, type: 'menu' | 'spot') => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOver(prev => ({ ...prev, [type]: true }))
+  }
+
+  const handleDragLeave = (e: React.DragEvent, type: 'menu' | 'spot') => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOver(prev => ({ ...prev, [type]: false }))
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent, type: 'menu' | 'spot') => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOver(prev => ({ ...prev, [type]: false }))
+    
+    const files = e.dataTransfer.files
+    processFiles(files, type)
   }
 
   const removeNewImage = (index: number, type: 'menu' | 'spot') => {
@@ -332,17 +367,25 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
           gridTemplateColumns: 'repeat(5, 1fr)',
           gap: '8px'
         }}>
-          <div style={{
-            aspectRatio: '1',
-            border: '2px dashed var(--color-gray-400)',
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            cursor: 'pointer',
-            backgroundColor: '#f9fafb'
-          }}>
+          <div 
+            style={{
+              aspectRatio: '1',
+              border: `2px dashed ${dragOver[type] ? '#007bff' : 'var(--color-gray-400)'}`,
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              cursor: 'pointer',
+              backgroundColor: dragOver[type] ? '#f0f8ff' : '#f9fafb',
+              position: 'relative'
+            }}
+            onDragEnter={(e) => handleDragEnter(e, type)}
+            onDragLeave={(e) => handleDragLeave(e, type)}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, type)}
+            onClick={() => document.getElementById(`${type}-upload`)?.click()}
+          >
             <input
               type="file"
               accept="image/*"
@@ -351,11 +394,9 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               style={{ display: 'none' }}
               id={`${type}-upload`}
             />
-            <label htmlFor={`${type}-upload`} style={{ cursor: 'pointer', display: 'block' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-gray-800)' }}>
-                이미지를<br/>업로드하세요
-              </div>
-            </label>
+            <div style={{ fontSize: '12px', color: 'var(--color-gray-800)' }}>
+              이미지를<br/>업로드하세요
+            </div>
           </div>
         </div>
       )
@@ -480,15 +521,20 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
           key="add-button"
           style={{
             aspectRatio: '1',
-            border: '2px dashed var(--color-gray-400)',
+            border: `2px dashed ${dragOver[type] ? '#007bff' : 'var(--color-gray-400)'}`,
             borderRadius: '4px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             textAlign: 'center',
             cursor: 'pointer',
-            backgroundColor: '#f9fafb'
+            backgroundColor: dragOver[type] ? '#f0f8ff' : '#f9fafb'
           }}
+          onDragEnter={(e) => handleDragEnter(e, type)}
+          onDragLeave={(e) => handleDragLeave(e, type)}
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, type)}
+          onClick={() => document.getElementById(`${type}-upload-additional`)?.click()}
         >
           <input
             type="file"
@@ -498,11 +544,9 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
             style={{ display: 'none' }}
             id={`${type}-upload-additional`}
           />
-          <label htmlFor={`${type}-upload-additional`} style={{ cursor: 'pointer', display: 'block' }}>
-            <div style={{ fontSize: '12px', color: 'var(--color-gray-800)' }}>
-              + 이미지<br/>추가
-            </div>
-          </label>
+          <div style={{ fontSize: '14px', color: 'var(--color-gray-800)' }}>
+            이미지<br/>추가
+          </div>
         </div>
       )
     }
