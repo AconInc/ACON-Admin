@@ -185,7 +185,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
   const [selectedMissingField, setSelectedMissingField] = useState<MissingField | undefined>(filters.missingField)
 
   const statusOptions = [
-    { value: 'PENDING', label: '대기', color: 'var(--color-gray-700)' },
+    { value: 'PENDING', label: '미처리', color: 'var(--color-gray-700)' },
     { value: 'ACTIVE', label: '활성화', color:  'var(--color-gray-700)' },
     { value: 'INACTIVE', label: '비활성화', color:  'var(--color-gray-700)' }
   ]
