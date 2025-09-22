@@ -1012,6 +1012,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
           </div>
 
           {/* 가성비 */}
+          {/* 가성비 (식당일 때만) */}
+          {formData.spotType === 'RESTAURANT' ? (
           <div style={{ marginBottom: '24px' }}>
             <label style={{
               display: 'block',
@@ -1022,27 +1024,28 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
             }}>
               가성비
             </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {Object.entries(priceFeatureLabels).map(([key, label]) => (
-                <TagButton
-                  key={key}
-                  isActive={formData.priceFeature === key}
-                  onClick={() => setFormData(prev => ({ 
-                    ...prev, 
-                    priceFeature: prev.priceFeature === key ? undefined : key as PriceFeature 
-                  }))}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '12px',
-                    borderRadius: '16px'
-                  }}
-                >
-                  {label}
-                </TagButton>
-              ))}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {Object.entries(priceFeatureLabels).map(([key, label]) => (
+                  <TagButton
+                    key={key}
+                    isActive={formData.priceFeature === key}
+                    onClick={() => setFormData(prev => ({ 
+                      ...prev, 
+                      priceFeature: prev.priceFeature === key ? undefined : key as PriceFeature 
+                    }))}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      borderRadius: '16px'
+                    }}
+                  >
+                    {label}
+                  </TagButton>
+                ))}
+              </div>
             </div>
-          </div>
-
+          ) : null}
+          
           {/* 메뉴판 이미지 업로드 */}
           <div style={{ marginBottom: '20px' }}>
             <label style={{
