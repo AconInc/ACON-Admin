@@ -43,6 +43,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     menu: false,
     spot: false
   })
+  console.log('SpotForm received spotId:', spotId)
   const [previewModal, setPreviewModal] = useState<{
     isOpen: boolean
     images: string[]
@@ -115,6 +116,15 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     setLoading(true)
     try {
       const data = await spotDetailService.getSpotDetail(spotId)
+
+      const allDays: DayOfWeek[] = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
+    
+      const completeOpeningHours: OpeningHour[] = allDays.map(day => {
+        // 기존 데이터에서 해당 요일 찾기
+        const existingHour = data.openingHourList?.find(hour => hour.dayOfWeek === day)
+        // 있으면 기존 데이터 사용, 없으면 기본값
+        return existingHour || { dayOfWeek: day, closed: false }
+      })
       setSpotData(data)
       
       setFormData({
@@ -125,7 +135,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
         localAcornCount: data.localAcornCount,
         basicAcornCount: data.basicAcornCount,
         priceFeature: data.priceFeature,
-        openingHourList: data.openingHourList,
+        openingHourList: data.openingHourList && data.openingHourList.length > 0 
+        ? data.openingHourList : completeOpeningHours,
         signatureMenuList: data.signatureMenuList || [],
         menuboardImageList: data.menuboardImageList || [],
         spotImageList: data.spotImageList || []
