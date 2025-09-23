@@ -11,7 +11,8 @@ import type {
   PriceFeature,
   DayOfWeek,
   OpeningHour,
-  SignatureMenu 
+  SignatureMenu,
+  RecommendedMenu
 } from '@/types/spot-detail.types'
 import { spotDetailService } from '@/services/spot-detail.service'
 import { Breadcrumb, PageHeader } from '@/components/layout'
@@ -332,6 +333,23 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
       }
     })
   }
+
+  const updateRecommendedMenu = (index: number, field: 'name' | 'recommendationCount', value: string | number) => {
+  setFormData(prev => {
+    const newList = [...prev.recommendedMenuList]
+    
+    while (newList.length <= index) {
+      newList.push({ name: '', recommendationCount: 0 })
+    }
+    
+    newList[index] = { ...newList[index], [field]: value }
+    
+    return {
+      ...prev,
+      recommendedMenuList: newList
+    }
+  })
+}
 
   const updateOpeningHour = (dayOfWeek: DayOfWeek, field: keyof OpeningHour, value: string | boolean) => {
     setFormData(prev => ({
@@ -1011,7 +1029,53 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
             </div>
           </div>
 
-          {/* 가성비 */}
+          {/* 추천 메뉴 - 기존 데이터가 있을 때만 표시 */}
+          {mode === 'edit' && formData.recommendedMenuList && formData.recommendedMenuList.length > 0 && (
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                marginBottom: '8px',
+                color: 'var(--color-gray-800)'
+              }}>
+                추천 메뉴
+              </label>
+              <div style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap',
+                gap: '8px' 
+              }}>
+                {formData.recommendedMenuList.map((menu, index) => (
+                  <div key={index} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 12px',
+                    backgroundColor: 'var(--color-white)',
+                    borderRadius: '20px',
+                    border: '1px solid var(--color-gray-300)',
+                    fontSize: '14px',
+                    color: 'var(--color-black)',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    <span>{menu.name}</span>
+                    <span style={{
+                      padding: '2px 6px',
+                      color: 'var(--color-secondary-orange)',
+                      borderRadius: '10px',
+                      fontSize: '14px',
+                      minWidth: '20px',
+                      textAlign: 'center'
+                    }}>
+                      {menu.recommendationCount}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* 가성비 (식당일 때만) */}
           {formData.spotType === 'RESTAURANT' ? (
           <div style={{ marginBottom: '24px' }}>
