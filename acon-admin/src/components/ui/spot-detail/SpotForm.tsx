@@ -55,7 +55,16 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     currentIndex: 0,
     type: 'menu'
   })
-  
+
+  const [currentUser, setCurrentUser] = useState<{username: string} | null>(null)
+
+  useEffect(() => {
+    const user = localStorage.getItem('user')
+    if (user) {
+      setCurrentUser(JSON.parse(user))
+    }
+  }, [])
+
   const [formData, setFormData] = useState<SpotFormData>({
     spotName: '',
     address: '',
@@ -671,7 +680,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
             </div>
           ) : (
             <div style={{ fontSize: '16px', color: 'var(--color-black)', fontWeight: '800' }}>
-              관리자 AconAdmin
+              [admin] {currentUser?.username || 'AconAdmin'}
             </div>
           )}
         </div>
