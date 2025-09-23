@@ -26,7 +26,7 @@ export interface RecommendedMenu {
 }
 
 export interface PresignedUrlResponse {
-  fileName: string
+  fileUrl: string
   presignedUrl: string
 }
 

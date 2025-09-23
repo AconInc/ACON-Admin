@@ -14,11 +14,11 @@ interface PresignedUrlResponse {
 class SpotDetailService {
   private baseUrl = '/admin/spots'
 
-  async getPresignedUrl(imageType: 'SPOT' | 'MENUBOARD', originalFileName: string): Promise<PresignedUrlResponse> {
+  async postPresignedUrl(imageType: 'SPOT' | 'MENUBOARD', originalFileName: string): Promise<PresignedUrlResponse> {
     try {
       console.log('🔄 Getting presigned URL for:', imageType, originalFileName)
 
-      const response = await apiRequest<PresignedUrlResponse>(`/admin/images/presigned-url?imageType=${imageType}`, {
+      const response = await apiRequest<PresignedUrlResponse>(`/admin/images/presigned-url`, {
         method: 'POST',
         requireAuth: true,
         body: JSON.stringify({ imageType, originalFileName }),
