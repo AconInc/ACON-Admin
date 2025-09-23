@@ -388,14 +388,19 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                           (formData.spotType === 'RESTAURANT' && formData.spotFeatureList && formData.spotFeatureList.length > 0)
 
     const hasValidOpeningHours = formData.openingHourList.every(hour => {
-      if (hour.closed) return true // 휴무일은 유효한 것으로 간주
-      return hour.startTime && hour.endTime // 영업일은 시작시간과 종료시간이 모두 있어야 함
+      if (hour.closed) return true
+      return hour.startTime && hour.endTime
     })
 
     const hasPriceFeature = formData.spotType === 'CAFE' || 
                           (formData.spotType === 'RESTAURANT' && formData.priceFeature !== undefined)
 
-    return hasBasicFields && hasSpotFeature && hasValidOpeningHours && hasPriceFeature
+    // 대표 메뉴: 최소 하나의 메뉴에 이름과 가격이 모두 입력되어야 함
+    const hasSignatureMenu = formData.signatureMenuList.some(menu => 
+      menu.name && menu.name.trim() !== '' && menu.price && menu.price > 0
+    )
+
+    return hasBasicFields && hasSpotFeature && hasValidOpeningHours && hasPriceFeature && hasSignatureMenu
   }
 
   const renderImageGrid = (
@@ -1018,7 +1023,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              대표 메뉴
+              대표 메뉴 (최소 1개 이상 입력)
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[0, 1, 2].map((index) => (
