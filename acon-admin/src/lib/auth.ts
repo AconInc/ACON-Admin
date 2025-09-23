@@ -52,6 +52,10 @@ export async function loginUser(credentials: LoginCredentials): Promise<void> {
     }
   )
 
+  localStorage.setItem('user', JSON.stringify({
+    username: credentials.username,
+  }))
+
   console.log('✅ Login request successful')
 
   // 4. 로그인 후 새 CSRF 토큰 발급
@@ -92,6 +96,7 @@ export async function logoutUser(): Promise<void> {
     // CSRF 에러든 다른 에러든 클라이언트 측 정리는 수행
   } finally {
     clearStoredTokens()
+    localStorage.removeItem('user')
     console.log('🎉 Logout process completed - all tokens cleared')
   }
 }
