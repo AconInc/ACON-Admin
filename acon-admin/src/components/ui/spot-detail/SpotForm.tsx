@@ -334,12 +334,14 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
       let errorMessage = '저장에 실패했습니다.'
       
       if (error instanceof ApiError) {
-        errorMessage = error.message
+        errorMessage = '저장 실패: ' + error.message
         
-        // responseData에서 errors 배열 확인
-        if (error.responseData && error.responseData.errors && Array.isArray(error.responseData.errors)) {
+        if (error.responseData && 
+            typeof error.responseData === 'object' && 
+            'errors' in error.responseData &&
+            Array.isArray(error.responseData.errors)) {
           const errorDetails = error.responseData.errors
-            .map((err: any) => err.message)
+            .map((err: {field: string, message: string}) => err.message)
             .join('\n')
           errorMessage = `${errorMessage}\n\n상세 오류:\n${errorDetails}`
         }

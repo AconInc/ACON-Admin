@@ -1,5 +1,3 @@
-import type { SpotItem } from '@/types/spot.types'
-
 export const TABLE_COLUMNS = {
   SPOT_ID: 'SPOT_ID',
   USER_NICKNAME: 'USER_NICKNAME', 

@@ -13,14 +13,14 @@ interface FetchOptions extends RequestInit {
 export class ApiError extends Error {
   public code: number
   public statusCode: number
-  public responseData?: any
+  public responseData?: unknown
 
-  constructor(code: number, message: string, statusCode: number, responseData?: any) {
-    super(message)
-    this.name = 'ApiError'
-    this.code = code
-    this.statusCode = statusCode
-    this.responseData = responseData
+  constructor(code: number, message: string, statusCode: number, responseData?: unknown) {
+  super(message)
+  this.name = 'ApiError'
+  this.code = code
+  this.statusCode = statusCode
+  this.responseData = responseData
   }
 }
 
