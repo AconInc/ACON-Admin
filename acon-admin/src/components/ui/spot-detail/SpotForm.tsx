@@ -19,6 +19,7 @@ import { Breadcrumb, PageHeader } from '@/components/layout'
 import { TagButton } from '@/components/ui/TagButton'
 import { LoadingSpinner } from '@/components/ui'
 import { useRouter } from 'next/navigation';
+import { ApiError } from '@/lib/api'
 
 interface SpotFormProps {
   mode: PageMode
@@ -329,7 +330,22 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
       }
     } catch (error) {
       console.error('저장 실패:', error)
-      alert('저장에 실패했습니다.')
+      
+      let errorMessage = '저장에 실패했습니다.'
+      
+      if (error instanceof ApiError) {
+        errorMessage = error.message
+        
+        // responseData에서 errors 배열 확인
+        if (error.responseData && error.responseData.errors && Array.isArray(error.responseData.errors)) {
+          const errorDetails = error.responseData.errors
+            .map((err: any) => err.message)
+            .join('\n')
+          errorMessage = `${errorMessage}\n\n상세 오류:\n${errorDetails}`
+        }
+      }
+      
+      alert(errorMessage)
     } finally {
       setLoading(false)
     }
