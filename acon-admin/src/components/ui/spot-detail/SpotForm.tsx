@@ -12,7 +12,7 @@ import type {
   DayOfWeek,
   OpeningHour,
   SignatureMenu,
-  RecommendedMenu
+  SpotFeature
 } from '@/types/spot-detail.types'
 import { spotDetailService } from '@/services/spot-detail.service'
 import { Breadcrumb, PageHeader } from '@/components/layout'
@@ -122,7 +122,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
         spotName: data.spotName,
         address: data.address,
         spotType: data.spotType,
-        spotFeature: data.spotFeature,
+        spotFeatureList: data.spotFeatureList || [],
         localAcornCount: data.localAcornCount,
         basicAcornCount: data.basicAcornCount,
         priceFeature: data.priceFeature,
@@ -334,22 +334,34 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     })
   }
 
-  const updateRecommendedMenu = (index: number, field: 'name' | 'recommendationCount', value: string | number) => {
-  setFormData(prev => {
-    const newList = [...prev.recommendedMenuList]
-    
-    while (newList.length <= index) {
-      newList.push({ name: '', recommendationCount: 0 })
+  const toggleSpotFeature = (feature: SpotFeature) => {
+      setFormData(prev => {
+        const currentFeatures = prev.spotFeatureList || []
+        
+        if (currentFeatures.includes(feature)) {
+          // 이미 선택된 경우 제거
+          return {
+            ...prev,
+            spotFeatureList: currentFeatures.filter(f => f !== feature)
+          }
+        } else {
+          // 선택되지 않은 경우 추가
+          return {
+            ...prev,
+            spotFeatureList: [...currentFeatures, feature]
+          }
+        }
+      })
     }
-    
-    newList[index] = { ...newList[index], [field]: value }
-    
-    return {
-      ...prev,
-      recommendedMenuList: newList
-    }
-  })
-}
+
+  // 5. 장소 종류 변경 시 특성 초기화 수정
+  const handleSpotTypeChange = (spotType: SpotType) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      spotType, 
+      spotFeatureList: [] // 배열로 초기화
+    }))
+  }
 
   const updateOpeningHour = (dayOfWeek: DayOfWeek, field: keyof OpeningHour, value: string | boolean) => {
     setFormData(prev => ({
@@ -373,7 +385,9 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                           formData.localAcornCount !== null &&
                           formData.basicAcornCount !== null
 
-    const hasSpotFeature = formData.spotFeature !== undefined
+    // 장소 특성: 식당일 때만 필수, 카페는 선택사항
+    const hasSpotFeature = formData.spotType === 'CAFE' || 
+                          (formData.spotType === 'RESTAURANT' && formData.spotFeatureList && formData.spotFeatureList.length > 0)
 
     const hasValidOpeningHours = formData.openingHourList.every(hour => {
       if (hour.closed) return true // 휴무일은 유효한 것으로 간주
@@ -724,14 +738,14 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               <div style={{ display: 'flex', gap: '16px'}}>
                 <TagButton
                   isActive={formData.spotType === 'RESTAURANT'}
-                  onClick={() => setFormData(prev => ({ ...prev, spotType: 'RESTAURANT', spotFeature: undefined }))}
+                  onClick={() => handleSpotTypeChange('RESTAURANT')}
                   style={{ height: '30px', padding: '0 24px' }}
                 >
                   식당
                 </TagButton>
                 <TagButton
                   isActive={formData.spotType === 'CAFE'}
-                  onClick={() => setFormData(prev => ({ ...prev, spotType: 'CAFE', spotFeature: undefined }))}
+                  onClick={() => handleSpotTypeChange('CAFE')}
                   style={{ height: '30px', padding: '0 24px' }}
                 >
                   카페
@@ -818,11 +832,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                 Object.entries(cafeFeatureLabels).map(([key, label]) => (
                   <TagButton
                     key={key}
-                    isActive={formData.spotFeature === key}
-                    onClick={() => setFormData(prev => ({ 
-                      ...prev, 
-                      spotFeature: prev.spotFeature === key ? undefined : key as CafeFeature 
-                    }))}
+                    isActive={formData.spotFeatureList?.includes(key as CafeFeature) || false}
+                    onClick={() => toggleSpotFeature(key as CafeFeature)}
                     style={{
                       padding: '6px 12px',
                       fontSize: '12px',
@@ -836,11 +847,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                 Object.entries(restaurantFeatureLabels).map(([key, label]) => (
                   <TagButton
                     key={key}
-                    isActive={formData.spotFeature === key}
-                    onClick={() => setFormData(prev => ({ 
-                      ...prev, 
-                      spotFeature: prev.spotFeature === key ? undefined : key as RestaurantFeature
-                    }))}
+                    isActive={formData.spotFeatureList?.includes(key as RestaurantFeature) || false}
+                    onClick={() => toggleSpotFeature(key as RestaurantFeature)}
                     style={{
                       padding: '6px 12px',
                       fontSize: '12px',

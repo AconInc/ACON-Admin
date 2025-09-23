@@ -40,7 +40,7 @@ export interface SpotDetailResponse {
   localAcornCount: number
   basicAcornCount: number
   spotType: SpotType
-  spotFeature?: SpotFeature
+  spotFeatureList?: SpotFeature[]
   openingHourList: OpeningHour[]
   signatureMenuList?: SignatureMenu[]
   recommendedMenuList: RecommendedMenu[]
@@ -53,13 +53,12 @@ export interface SpotFormData {
   spotName: string
   address: string
   spotType: SpotType
-  spotFeature?: SpotFeature
+  spotFeatureList?: SpotFeature[]
   localAcornCount: number | null
   basicAcornCount: number | null
   priceFeature?: PriceFeature
   openingHourList: OpeningHour[]
   signatureMenuList: SignatureMenu[]
-  recommendedMenuList: RecommendedMenu[]
   menuboardImageList: string[]
   spotImageList: string[]
 }
@@ -68,7 +67,7 @@ export interface SpotCreateRequest {
   spotName: string
   address: string
   spotType: SpotType
-  spotFeature?: SpotFeature
+  spotFeatureList?: SpotFeature[]
   localAcornCount: number
   basicAcornCount: number
   priceFeature?: PriceFeature
