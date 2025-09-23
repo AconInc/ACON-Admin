@@ -365,6 +365,27 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
            { dayOfWeek: selectedDay, closed: false }
   }
 
+  // 저장버튼 활성화 검사
+  const isFormValid = () => {
+    const hasBasicFields = formData.spotName.trim() !== '' &&
+                          formData.address.trim() !== '' &&
+                          formData.spotType !== null &&
+                          formData.localAcornCount !== null &&
+                          formData.basicAcornCount !== null
+
+    const hasSpotFeature = formData.spotFeature !== undefined
+
+    const hasValidOpeningHours = formData.openingHourList.every(hour => {
+      if (hour.closed) return true // 휴무일은 유효한 것으로 간주
+      return hour.startTime && hour.endTime // 영업일은 시작시간과 종료시간이 모두 있어야 함
+    })
+
+    const hasPriceFeature = formData.spotType === 'CAFE' || 
+                          (formData.spotType === 'RESTAURANT' && formData.priceFeature !== undefined)
+
+    return hasBasicFields && hasSpotFeature && hasValidOpeningHours && hasPriceFeature
+  }
+
   const renderImageGrid = (
     existingImages: string[], 
     newImages: LocalImage[], 
@@ -842,7 +863,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              영업 시간
+              영업 시간 <span style={{ color: 'var(--color-secondary-orange)' }}>*</span>
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
               {formData.openingHourList.map((hour) => (
@@ -1151,23 +1172,24 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
             justifyContent: 'center',
             flex: 1
           }}>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: loading ? 'var(--color-gray-800)' : '#000000',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '14px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1
-              }}
-            >
-              {loading ? '저장 중...' : (mode === 'create' ? '활성화' : '저장')}
-            </button>
+           <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={loading || !isFormValid()}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: loading || !isFormValid() ? 'var(--color-gray-400)' : '#000000',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '14px',
+              cursor: loading || !isFormValid() ? 'not-allowed' : 'pointer',
+              opacity: loading || !isFormValid() ? 0.6 : 1,
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {loading ? '저장 중...' : (mode === 'create' ? '활성화' : '저장')}
+          </button>
           </div>
         </div>
       </div>
