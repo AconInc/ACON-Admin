@@ -71,7 +71,6 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
       { dayOfWeek: 'SUNDAY', closed: false }
     ],
     signatureMenuList: [],
-    recommendedMenuList: [],
     menuboardImageList: [],
     spotImageList: []
   })
@@ -128,7 +127,6 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
         priceFeature: data.priceFeature,
         openingHourList: data.openingHourList,
         signatureMenuList: data.signatureMenuList || [],
-        recommendedMenuList: data.recommendedMenuList,
         menuboardImageList: data.menuboardImageList || [],
         spotImageList: data.spotImageList || []
       })
@@ -1059,7 +1057,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
           </div>
 
           {/* 추천 메뉴 - 기존 데이터가 있을 때만 표시 */}
-          {mode === 'edit' && formData.recommendedMenuList && formData.recommendedMenuList.length > 0 && (
+          {mode === 'edit' && spotData?.recommendedMenuList && spotData.recommendedMenuList.length > 0 && (
             <div style={{ marginBottom: '24px' }}>
               <label style={{
                 display: 'block',
@@ -1075,7 +1073,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                 flexWrap: 'wrap',
                 gap: '8px' 
               }}>
-                {formData.recommendedMenuList.map((menu, index) => (
+              {spotData.recommendedMenuList.map((menu, index) => (
                   <div key={index} style={{
                     display: 'flex',
                     alignItems: 'center',
