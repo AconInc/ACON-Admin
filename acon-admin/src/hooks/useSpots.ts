@@ -1,7 +1,6 @@
-// hooks/useSpots.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { spotService } from '@/services/spot.service'
-import type { SpotFilters, SpotListResponse, SpotStatus } from '@/types/spot.types'
+import type { SpotFilters, SpotStatus } from '@/types/spot.types'
 import { PAGE_FILTERS } from '@/types/spot.types'
 
 // 쿼리 키 상수

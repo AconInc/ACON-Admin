@@ -13,12 +13,14 @@ interface FetchOptions extends RequestInit {
 export class ApiError extends Error {
   public code: number
   public statusCode: number
+  public responseData?: unknown
 
-  constructor(code: number, message: string, statusCode: number) {
-    super(message)
-    this.name = 'ApiError'
-    this.code = code
-    this.statusCode = statusCode
+  constructor(code: number, message: string, statusCode: number, responseData?: unknown) {
+  super(message)
+  this.name = 'ApiError'
+  this.code = code
+  this.statusCode = statusCode
+  this.responseData = responseData
   }
 }
 
@@ -158,6 +160,7 @@ export async function apiRequest<T>(
       console.error('💡 Note: JSESSIONID should be sent automatically via credentials: include')
       
       throw new ApiError(errorData.code, errorData.message, response.status)
+      throw new ApiError(errorData.code, errorData.message, response.status, responseData)
     } else if (response.status === 403) {
       // 403 Forbidden - CSRF 관련 에러 처리
       const errorData: ApiErrorResponse = responseData || {
@@ -178,6 +181,7 @@ export async function apiRequest<T>(
       }
       
       throw new ApiError(errorData.code, errorData.message, response.status)
+      throw new ApiError(errorData.code, errorData.message, response.status, responseData)
     } else if (response.status >= 400 && response.status < 500) {
       // 기타 4xx 클라이언트 에러
       const errorData: ApiErrorResponse = responseData || {
@@ -191,8 +195,8 @@ export async function apiRequest<T>(
         url,
         requestOptions: config
       })
-      
-      throw new ApiError(errorData.code, errorData.message, response.status)
+
+      throw new ApiError(errorData.code, errorData.message, response.status, responseData)
     } else if (response.status >= 500) {
       // 5xx 서버 에러
       const errorData: ApiErrorResponse = responseData || {
@@ -207,7 +211,7 @@ export async function apiRequest<T>(
         requestOptions: config
       })
       
-      throw new ApiError(errorData.code, errorData.message, response.status)
+      throw new ApiError(errorData.code, errorData.message, response.status, responseData)
     } else {
       // 기타 상태 코드
       console.warn(`⚠️ Unexpected Status [${response.status}] ${endpoint}`)
@@ -297,7 +301,7 @@ export async function apiRequestFormData<T>(
         formData: Object.fromEntries(formData.entries())
       })
       
-      throw new ApiError(errorData.code, errorData.message, response.status)
+      throw new ApiError(errorData.code, errorData.message, response.status, responseData)
     } else if (response.status >= 500) {
       // 5xx 서버 에러
       const errorData: ApiErrorResponse = responseData || {
@@ -312,7 +316,7 @@ export async function apiRequestFormData<T>(
         formData: Object.fromEntries(formData.entries())
       })
       
-      throw new ApiError(errorData.code, errorData.message, response.status)
+      throw new ApiError(errorData.code, errorData.message, response.status, responseData)
     } else {
       // 기타 상태 코드
       console.warn(`⚠️ Form Data Unexpected Status [${response.status}] ${endpoint}`)

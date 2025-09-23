@@ -11,13 +11,15 @@ import type {
   PriceFeature,
   DayOfWeek,
   OpeningHour,
-  SignatureMenu 
+  SignatureMenu,
+  SpotFeature
 } from '@/types/spot-detail.types'
 import { spotDetailService } from '@/services/spot-detail.service'
 import { Breadcrumb, PageHeader } from '@/components/layout'
 import { TagButton } from '@/components/ui/TagButton'
 import { LoadingSpinner } from '@/components/ui'
 import { useRouter } from 'next/navigation';
+import { ApiError } from '@/lib/api'
 
 interface SpotFormProps {
   mode: PageMode
@@ -38,6 +40,11 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
   const [spotImages, setSpotImages] = useState<LocalImage[]>([])
   const [existingMenuImages, setExistingMenuImages] = useState<string[]>([])
   const [existingSpotImages, setExistingSpotImages] = useState<string[]>([])
+  const [dragOver, setDragOver] = useState<{ menu: boolean; spot: boolean }>({
+    menu: false,
+    spot: false
+  })
+  console.log('SpotForm received spotId:', spotId)
   const [previewModal, setPreviewModal] = useState<{
     isOpen: boolean
     images: string[]
@@ -49,7 +56,16 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     currentIndex: 0,
     type: 'menu'
   })
-  
+
+  const [currentUser, setCurrentUser] = useState<{username: string} | null>(null)
+
+  useEffect(() => {
+    const user = localStorage.getItem('user')
+    if (user) {
+      setCurrentUser(JSON.parse(user))
+    }
+  }, [])
+
   const [formData, setFormData] = useState<SpotFormData>({
     spotName: '',
     address: '',
@@ -66,7 +82,6 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
       { dayOfWeek: 'SUNDAY', closed: false }
     ],
     signatureMenuList: [],
-    recommendedMenuList: [],
     menuboardImageList: [],
     spotImageList: []
   })
@@ -94,9 +109,9 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
   }
 
   const priceFeatureLabels: Record<PriceFeature, string> = {
-    CHEAP: '가성비 좋아요',
-    REASONABLE: '보통이에요',
-    EXPENSIVE: '가성비 별로에요'
+    VALUE_FOR_MONEY: '가성비 좋아요',
+    AVERAGE_VALUE: '보통이에요',
+    LOW_VALUE: '가성비 별로에요'
   }
 
   useEffect(() => {
@@ -111,19 +126,28 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     setLoading(true)
     try {
       const data = await spotDetailService.getSpotDetail(spotId)
+
+      const allDays: DayOfWeek[] = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
+    
+      const completeOpeningHours: OpeningHour[] = allDays.map(day => {
+        // 기존 데이터에서 해당 요일 찾기
+        const existingHour = data.openingHourList?.find(hour => hour.dayOfWeek === day)
+        // 있으면 기존 데이터 사용, 없으면 기본값
+        return existingHour || { dayOfWeek: day, closed: false }
+      })
       setSpotData(data)
       
       setFormData({
         spotName: data.spotName,
         address: data.address,
         spotType: data.spotType,
-        spotFeature: data.spotFeature,
+        spotFeatureList: data.spotFeatureList || [],
         localAcornCount: data.localAcornCount,
         basicAcornCount: data.basicAcornCount,
         priceFeature: data.priceFeature,
-        openingHourList: data.openingHourList,
+        openingHourList: data.openingHourList && data.openingHourList.length > 0 
+        ? data.openingHourList : completeOpeningHours,
         signatureMenuList: data.signatureMenuList || [],
-        recommendedMenuList: data.recommendedMenuList,
         menuboardImageList: data.menuboardImageList || [],
         spotImageList: data.spotImageList || []
       })
@@ -138,11 +162,12 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     }
   }
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'menu' | 'spot') => {
-    const files = event.target.files
+  const processFiles = (files: FileList | null, type: 'menu' | 'spot') => {
     if (!files) return
 
     Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) return
+      
       const reader = new FileReader()
       reader.onload = (e) => {
         const url = e.target?.result as string
@@ -156,9 +181,39 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
       }
       reader.readAsDataURL(file)
     })
-    
+  }
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'menu' | 'spot') => {
+    processFiles(event.target.files, type)
     // input 초기화
     event.target.value = ''
+  }
+
+  // 드래그 앤 드롭 핸들러들
+  const handleDragEnter = (e: React.DragEvent, type: 'menu' | 'spot') => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOver(prev => ({ ...prev, [type]: true }))
+  }
+
+  const handleDragLeave = (e: React.DragEvent, type: 'menu' | 'spot') => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOver(prev => ({ ...prev, [type]: false }))
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent, type: 'menu' | 'spot') => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOver(prev => ({ ...prev, [type]: false }))
+    
+    const files = e.dataTransfer.files
+    processFiles(files, type)
   }
 
   const removeNewImage = (index: number, type: 'menu' | 'spot') => {
@@ -216,16 +271,16 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     for (const image of images) {
       try {
         // 1. Presigned URL 획득 (originalFileName 포함)
-        const presignedData = await spotDetailService.getPresignedUrl(imageType, image.file.name)
+        const presignedData = await spotDetailService.postPresignedUrl(imageType, image.file.name)
         
         // 2. S3에 직접 업로드 (PUT 메서드, 바이너리 방식)
         await spotDetailService.uploadImageToS3(image.file, presignedData.preSignedUrl)
 
         // 3. 업로드된 파일의 fileUrl을 fileName으로 추출
-        const fileName = presignedData.fileUrl?.split('/').pop() || 'unknown-file'
-        uploadedFileNames.push(fileName)
+        const fileUrl = presignedData.fileUrl?.split('/').pop() || 'unknown-file'
+        uploadedFileNames.push(fileUrl)
         
-        console.log('✅ Image uploaded successfully:', fileName)
+        console.log('✅ Image uploaded successfully:', fileUrl)
         
       } catch (error) {
         console.error('❌ 이미지 업로드 실패:', error)
@@ -275,7 +330,24 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
       }
     } catch (error) {
       console.error('저장 실패:', error)
-      alert('저장에 실패했습니다.')
+      
+      let errorMessage = '저장에 실패했습니다.'
+      
+      if (error instanceof ApiError) {
+        errorMessage = '저장 실패: ' + error.message
+        
+        if (error.responseData && 
+            typeof error.responseData === 'object' && 
+            'errors' in error.responseData &&
+            Array.isArray(error.responseData.errors)) {
+          const errorDetails = error.responseData.errors
+            .map((err: {field: string, message: string}) => err.message)
+            .join('\n')
+          errorMessage = `${errorMessage}\n\n상세 오류:\n${errorDetails}`
+        }
+      }
+      
+      alert(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -298,6 +370,35 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     })
   }
 
+  const toggleSpotFeature = (feature: SpotFeature) => {
+      setFormData(prev => {
+        const currentFeatures = prev.spotFeatureList || []
+        
+        if (currentFeatures.includes(feature)) {
+          // 이미 선택된 경우 제거
+          return {
+            ...prev,
+            spotFeatureList: currentFeatures.filter(f => f !== feature)
+          }
+        } else {
+          // 선택되지 않은 경우 추가
+          return {
+            ...prev,
+            spotFeatureList: [...currentFeatures, feature]
+          }
+        }
+      })
+    }
+
+  // 5. 장소 종류 변경 시 특성 초기화 수정
+  const handleSpotTypeChange = (spotType: SpotType) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      spotType, 
+      spotFeatureList: [] // 배열로 초기화
+    }))
+  }
+
   const updateOpeningHour = (dayOfWeek: DayOfWeek, field: keyof OpeningHour, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
@@ -310,6 +411,34 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
   const getCurrentDayData = () => {
     return formData.openingHourList.find(hour => hour.dayOfWeek === selectedDay) || 
            { dayOfWeek: selectedDay, closed: false }
+  }
+
+  // 저장버튼 활성화 검사
+  const isFormValid = () => {
+    const hasBasicFields = formData.spotName.trim() !== '' &&
+                          formData.address.trim() !== '' &&
+                          formData.spotType !== null &&
+                          formData.localAcornCount !== null &&
+                          formData.basicAcornCount !== null
+
+    // 장소 특성: 식당일 때만 필수, 카페는 선택사항
+    const hasSpotFeature = formData.spotType === 'CAFE' || 
+                          (formData.spotType === 'RESTAURANT' && formData.spotFeatureList && formData.spotFeatureList.length > 0)
+
+    const hasValidOpeningHours = formData.openingHourList.every(hour => {
+      if (hour.closed) return true
+      return hour.startTime && hour.endTime
+    })
+
+    const hasPriceFeature = formData.spotType === 'CAFE' || 
+                          (formData.spotType === 'RESTAURANT' && formData.priceFeature !== undefined)
+
+    // 대표 메뉴: 최소 하나의 메뉴에 이름과 가격이 모두 입력되어야 함
+    const hasSignatureMenu = formData.signatureMenuList.some(menu => 
+      menu.name && menu.name.trim() !== '' && menu.price && menu.price > 0
+    )
+
+    return hasBasicFields && hasSpotFeature && hasValidOpeningHours && hasPriceFeature && hasSignatureMenu
   }
 
   const renderImageGrid = (
@@ -332,17 +461,25 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
           gridTemplateColumns: 'repeat(5, 1fr)',
           gap: '8px'
         }}>
-          <div style={{
-            aspectRatio: '1',
-            border: '2px dashed var(--color-gray-400)',
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            cursor: 'pointer',
-            backgroundColor: '#f9fafb'
-          }}>
+          <div 
+            style={{
+              aspectRatio: '1',
+              border: `2px dashed ${dragOver[type] ? '#007bff' : 'var(--color-gray-400)'}`,
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              cursor: 'pointer',
+              backgroundColor: dragOver[type] ? '#f0f8ff' : '#f9fafb',
+              position: 'relative'
+            }}
+            onDragEnter={(e) => handleDragEnter(e, type)}
+            onDragLeave={(e) => handleDragLeave(e, type)}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, type)}
+            onClick={() => document.getElementById(`${type}-upload`)?.click()}
+          >
             <input
               type="file"
               accept="image/*"
@@ -351,11 +488,9 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               style={{ display: 'none' }}
               id={`${type}-upload`}
             />
-            <label htmlFor={`${type}-upload`} style={{ cursor: 'pointer', display: 'block' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-gray-800)' }}>
-                이미지를<br/>업로드하세요
-              </div>
-            </label>
+            <div style={{ fontSize: '12px', color: 'var(--color-gray-800)' }}>
+              이미지를<br/>업로드하세요
+            </div>
           </div>
         </div>
       )
@@ -480,15 +615,20 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
           key="add-button"
           style={{
             aspectRatio: '1',
-            border: '2px dashed var(--color-gray-400)',
+            border: `2px dashed ${dragOver[type] ? '#007bff' : 'var(--color-gray-400)'}`,
             borderRadius: '4px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             textAlign: 'center',
             cursor: 'pointer',
-            backgroundColor: '#f9fafb'
+            backgroundColor: dragOver[type] ? '#f0f8ff' : '#f9fafb'
           }}
+          onDragEnter={(e) => handleDragEnter(e, type)}
+          onDragLeave={(e) => handleDragLeave(e, type)}
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, type)}
+          onClick={() => document.getElementById(`${type}-upload-additional`)?.click()}
         >
           <input
             type="file"
@@ -498,11 +638,9 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
             style={{ display: 'none' }}
             id={`${type}-upload-additional`}
           />
-          <label htmlFor={`${type}-upload-additional`} style={{ cursor: 'pointer', display: 'block' }}>
-            <div style={{ fontSize: '12px', color: 'var(--color-gray-800)' }}>
-              + 이미지<br/>추가
-            </div>
-          </label>
+          <div style={{ fontSize: '14px', color: 'var(--color-gray-800)' }}>
+            이미지<br/>추가
+          </div>
         </div>
       )
     }
@@ -560,7 +698,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
             </div>
           ) : (
             <div style={{ fontSize: '16px', color: 'var(--color-black)', fontWeight: '800' }}>
-              관리자 AconAdmin
+              [admin] {currentUser?.username || 'AconAdmin'}
             </div>
           )}
         </div>
@@ -641,14 +779,14 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               <div style={{ display: 'flex', gap: '16px'}}>
                 <TagButton
                   isActive={formData.spotType === 'RESTAURANT'}
-                  onClick={() => setFormData(prev => ({ ...prev, spotType: 'RESTAURANT', spotFeature: undefined }))}
+                  onClick={() => handleSpotTypeChange('RESTAURANT')}
                   style={{ height: '30px', padding: '0 24px' }}
                 >
                   식당
                 </TagButton>
                 <TagButton
                   isActive={formData.spotType === 'CAFE'}
-                  onClick={() => setFormData(prev => ({ ...prev, spotType: 'CAFE', spotFeature: undefined }))}
+                  onClick={() => handleSpotTypeChange('CAFE')}
                   style={{ height: '30px', padding: '0 24px' }}
                 >
                   카페
@@ -735,11 +873,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                 Object.entries(cafeFeatureLabels).map(([key, label]) => (
                   <TagButton
                     key={key}
-                    isActive={formData.spotFeature === key}
-                    onClick={() => setFormData(prev => ({ 
-                      ...prev, 
-                      spotFeature: prev.spotFeature === key ? undefined : key as CafeFeature 
-                    }))}
+                    isActive={formData.spotFeatureList?.includes(key as CafeFeature) || false}
+                    onClick={() => toggleSpotFeature(key as CafeFeature)}
                     style={{
                       padding: '6px 12px',
                       fontSize: '12px',
@@ -753,11 +888,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                 Object.entries(restaurantFeatureLabels).map(([key, label]) => (
                   <TagButton
                     key={key}
-                    isActive={formData.spotFeature === key}
-                    onClick={() => setFormData(prev => ({ 
-                      ...prev, 
-                      spotFeature: prev.spotFeature === key ? undefined : key as RestaurantFeature
-                    }))}
+                    isActive={formData.spotFeatureList?.includes(key as RestaurantFeature) || false}
+                    onClick={() => toggleSpotFeature(key as RestaurantFeature)}
                     style={{
                       padding: '6px 12px',
                       fontSize: '12px',
@@ -780,7 +912,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              영업 시간
+              영업 시간 <span style={{ color: 'var(--color-secondary-orange)' }}>*</span>
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
               {formData.openingHourList.map((hour) => (
@@ -929,7 +1061,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              대표 메뉴
+              대표 메뉴 (최소 1개 이상 입력)
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[0, 1, 2].map((index) => (
@@ -967,7 +1099,55 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
             </div>
           </div>
 
-          {/* 가성비 */}
+          {/* 추천 메뉴 - 기존 데이터가 있을 때만 표시 */}
+          {mode === 'edit' && spotData?.recommendedMenuList && spotData.recommendedMenuList.length > 0 && (
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                marginBottom: '8px',
+                color: 'var(--color-gray-800)'
+              }}>
+                추천 메뉴
+              </label>
+              <div style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap',
+                gap: '8px' 
+              }}>
+              {spotData.recommendedMenuList.map((menu, index) => (
+                  <div key={index} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 12px',
+                    backgroundColor: 'var(--color-white)',
+                    borderRadius: '20px',
+                    border: '1px solid var(--color-gray-300)',
+                    fontSize: '14px',
+                    color: 'var(--color-black)',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    <span>{menu.name}</span>
+                    <span style={{
+                      padding: '2px 6px',
+                      color: 'var(--color-secondary-orange)',
+                      borderRadius: '10px',
+                      fontSize: '14px',
+                      minWidth: '20px',
+                      textAlign: 'center'
+                    }}>
+                      {menu.recommendationCount}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 가성비 (식당일 때만) */}
+          {formData.spotType === 'RESTAURANT' ? (
           <div style={{ marginBottom: '24px' }}>
             <label style={{
               display: 'block',
@@ -978,27 +1158,28 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
             }}>
               가성비
             </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {Object.entries(priceFeatureLabels).map(([key, label]) => (
-                <TagButton
-                  key={key}
-                  isActive={formData.priceFeature === key}
-                  onClick={() => setFormData(prev => ({ 
-                    ...prev, 
-                    priceFeature: prev.priceFeature === key ? undefined : key as PriceFeature 
-                  }))}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '12px',
-                    borderRadius: '16px'
-                  }}
-                >
-                  {label}
-                </TagButton>
-              ))}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {Object.entries(priceFeatureLabels).map(([key, label]) => (
+                  <TagButton
+                    key={key}
+                    isActive={formData.priceFeature === key}
+                    onClick={() => setFormData(prev => ({ 
+                      ...prev, 
+                      priceFeature: prev.priceFeature === key ? undefined : key as PriceFeature 
+                    }))}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      borderRadius: '16px'
+                    }}
+                  >
+                    {label}
+                  </TagButton>
+                ))}
+              </div>
             </div>
-          </div>
-
+          ) : null}
+          
           {/* 메뉴판 이미지 업로드 */}
           <div style={{ marginBottom: '20px' }}>
             <label style={{
@@ -1040,23 +1221,24 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
             justifyContent: 'center',
             flex: 1
           }}>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: loading ? 'var(--color-gray-800)' : '#000000',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '14px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1
-              }}
-            >
-              {loading ? '저장 중...' : (mode === 'create' ? '활성화' : '저장')}
-            </button>
+           <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={loading || !isFormValid()}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: loading || !isFormValid() ? 'var(--color-gray-400)' : '#000000',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '14px',
+              cursor: loading || !isFormValid() ? 'not-allowed' : 'pointer',
+              opacity: loading || !isFormValid() ? 0.6 : 1,
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {loading ? '저장 중...' : (mode === 'create' ? '활성화' : '저장')}
+          </button>
           </div>
         </div>
       </div>

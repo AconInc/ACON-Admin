@@ -133,10 +133,11 @@ export const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
             padding: '12px 20px',
             fontSize: '14px',
             backgroundColor: filters.status?.length || filters.missingField ? 
-              'var(--color-primary-blue)' : 'var(--color-gray-100)',
+              'var(--color-primary-blue)' : 'var(--color-white)',
             color: filters.status?.length || filters.missingField ? 
-              'white' : 'var(--color-gray-600)',
-            border: 'none',
+              'var(--color-white)' : 'var(--color-black)',
+            border: filters.status?.length || filters.missingField ? 
+              'none' : '1px solid var(--color-gray-300)',
             borderRadius: '8px',
             cursor: 'pointer',
             fontWeight: '500',
@@ -184,7 +185,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
   const [selectedMissingField, setSelectedMissingField] = useState<MissingField | undefined>(filters.missingField)
 
   const statusOptions = [
-    { value: 'PENDING', label: '대기', color: 'var(--color-gray-700)' },
+    { value: 'PENDING', label: '미처리', color: 'var(--color-gray-700)' },
     { value: 'ACTIVE', label: '활성화', color:  'var(--color-gray-700)' },
     { value: 'INACTIVE', label: '비활성화', color:  'var(--color-gray-700)' }
   ]
