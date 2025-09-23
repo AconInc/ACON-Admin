@@ -4,7 +4,7 @@ export type CafeFeature = 'WORK_FRIENDLY'
 export type RestaurantFeature = 'KOREAN' | 'CHINESE' | 'JAPANESE' | 'WESTERN' | 'SOUTHEAST_ASIAN' | 'FUSION' | 'BUNSIK' | 'BUFFET' | 'DRINKING_PLACE' | 'OTHERS'
 export type SpotFeature = CafeFeature | RestaurantFeature
 export type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY'
-export type PriceFeature = 'CHEAP' | 'REASONABLE' | 'EXPENSIVE'
+export type PriceFeature = 'VALUE_FOR_MONEY' | 'AVERAGE_VALUE' | 'LOW_VALUE'
 
 export interface OpeningHour {
   dayOfWeek: DayOfWeek

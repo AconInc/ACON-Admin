@@ -99,9 +99,9 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
   }
 
   const priceFeatureLabels: Record<PriceFeature, string> = {
-    CHEAP: '가성비 좋아요',
-    REASONABLE: '보통이에요',
-    EXPENSIVE: '가성비 별로에요'
+    VALUE_FOR_MONEY: '가성비 좋아요',
+    AVERAGE_VALUE: '보통이에요',
+    LOW_VALUE: '가성비 별로에요'
   }
 
   useEffect(() => {
