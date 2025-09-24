@@ -458,7 +458,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
 
     // 대표 메뉴: 최소 하나의 메뉴에 이름과 가격이 모두 입력되어야 함
     const hasSignatureMenu = formData.signatureMenuList.some(menu => 
-      menu.name && menu.name.trim() !== '' && menu.price && menu.price > 0
+      menu.name && menu.name.trim() !== '' && menu.price && menu.price >= -1
     )
 
     return hasBasicFields && hasSpotFeature && hasValidOpeningHours && hasPriceFeature && hasSignatureMenu
