@@ -400,10 +400,33 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
   }
 
   const updateOpeningHour = (dayOfWeek: DayOfWeek, field: keyof OpeningHour, value: string | boolean) => {
+    const formatTime = (timeString: string): string => {
+      if (!timeString || typeof timeString !== 'string') return timeString;
+      
+      const timeRegex = /^(\d{1,2}):(\d{2})$/;
+      const match = timeString.match(timeRegex);
+      
+      if (match) {
+        const [, hours, minutes] = match;
+        return `${hours.padStart(2, '0')}:${minutes}`;
+      }
+      
+      return timeString;
+    };
+
+    const timeFields = ['startTime', 'endTime', 'breakStartTime', 'breakEndTime'];
+
     setFormData(prev => ({
       ...prev,
       openingHourList: prev.openingHourList.map((hour) => 
-        hour.dayOfWeek === dayOfWeek ? { ...hour, [field]: value } : hour
+        hour.dayOfWeek === dayOfWeek 
+          ? { 
+              ...hour, 
+              [field]: timeFields.includes(field) && typeof value === 'string'
+                ? formatTime(value)
+                : value
+            } 
+          : hour
       )
     }))
   }
