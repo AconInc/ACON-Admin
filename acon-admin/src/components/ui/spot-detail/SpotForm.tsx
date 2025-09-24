@@ -276,8 +276,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
         // 2. S3에 직접 업로드 (PUT 메서드, 바이너리 방식)
         await spotDetailService.uploadImageToS3(image.file, presignedData.preSignedUrl)
 
-        // 3. 업로드된 파일의 fileUrl을 fileName으로 추출
-        const fileUrl = presignedData.fileUrl?.split('/').pop() || 'unknown-file'
+        // 3. 업로드된 파일의 fileUrl 전송
+        const fileUrl = presignedData.fileUrl
         uploadedFileNames.push(fileUrl)
         
         console.log('✅ Image uploaded successfully:', fileUrl)
