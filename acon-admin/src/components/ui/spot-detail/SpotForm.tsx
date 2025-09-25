@@ -771,7 +771,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                 marginBottom: '8px',
                 color: 'var(--color-gray-800)'
               }}>
-                도로명주소 <span style={{ color: '#dc2626' }}>*</span>
+                지번 주소 <span style={{ color: '#dc2626' }}>*</span> (지번 주소 없을 경우만 도로명 !!)
               </label>
               <input
                 type="text"
@@ -889,7 +889,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              {formData.spotType === 'CAFE' ? '카페 특성' : '식당 특성'} <span style={{ color: 'var(--color-secondary-orange)' }}>*</span>
+            {formData.spotType === 'CAFE' ? '카페 특성' : '식당 특성'}
+                {formData.spotType !== 'CAFE' && <span style={{ color: '#dc2626' }}> *</span>}
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {formData.spotType === 'CAFE' ? (
@@ -935,7 +936,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              영업 시간 <span style={{ color: 'var(--color-secondary-orange)' }}>*</span>
+              영업 시간 <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
               {formData.openingHourList.map((hour) => (
@@ -1084,7 +1085,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              대표 메뉴 (최소 1개 이상 입력)
+              대표 메뉴 <span style={{ color: '#dc2626' }}>*</span> (최소 1개 이상 입력, 싯가는 가격 -1)
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[0, 1, 2].map((index) => (
@@ -1179,7 +1180,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              가성비
+              가성비 <span style={{ color: '#dc2626' }}>*</span>
             </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {Object.entries(priceFeatureLabels).map(([key, label]) => (
