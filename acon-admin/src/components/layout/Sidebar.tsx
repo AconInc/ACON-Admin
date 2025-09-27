@@ -36,7 +36,7 @@ export default function Sidebar() {
     { 
       id: 3, 
       name: '장소 관리', 
-      path: '/admin/dashboard/store-management',
+      path: '/admin/dashboard/store-management/all-store',
       hasSubmenu: true,
       submenu: [
         { id: 31, name: '전체 장소', path: '/admin/dashboard/store-management/all-store' },
