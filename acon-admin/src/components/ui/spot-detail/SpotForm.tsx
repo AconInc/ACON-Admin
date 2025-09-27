@@ -276,8 +276,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
         // 2. S3에 직접 업로드 (PUT 메서드, 바이너리 방식)
         await spotDetailService.uploadImageToS3(image.file, presignedData.preSignedUrl)
 
-        // 3. 업로드된 파일의 fileUrl을 fileName으로 추출
-        const fileUrl = presignedData.fileUrl?.split('/').pop() || 'unknown-file'
+        // 3. 업로드된 파일의 fileUrl 전송
+        const fileUrl = presignedData.fileUrl
         uploadedFileNames.push(fileUrl)
         
         console.log('✅ Image uploaded successfully:', fileUrl)
@@ -357,8 +357,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     setFormData(prev => {
       const newList = [...prev.signatureMenuList]
       
-      while (newList.length <= index) {
-        newList.push({ name: '', price: 0 })
+      if (!newList[index]) {
+        newList[index] = { name: '', price: 0 }
       }
       
       newList[index] = { ...newList[index], [field]: value }
@@ -400,10 +400,33 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
   }
 
   const updateOpeningHour = (dayOfWeek: DayOfWeek, field: keyof OpeningHour, value: string | boolean) => {
+    const formatTime = (timeString: string): string => {
+      if (!timeString || typeof timeString !== 'string') return timeString;
+      
+      const timeRegex = /^(\d{1,2}):(\d{2})$/;
+      const match = timeString.match(timeRegex);
+      
+      if (match) {
+        const [, hours, minutes] = match;
+        return `${hours.padStart(2, '0')}:${minutes}`;
+      }
+      
+      return timeString;
+    };
+
+    const timeFields = ['startTime', 'endTime', 'breakStartTime', 'breakEndTime'];
+
     setFormData(prev => ({
       ...prev,
       openingHourList: prev.openingHourList.map((hour) => 
-        hour.dayOfWeek === dayOfWeek ? { ...hour, [field]: value } : hour
+        hour.dayOfWeek === dayOfWeek 
+          ? { 
+              ...hour, 
+              [field]: timeFields.includes(field) && typeof value === 'string'
+                ? formatTime(value)
+                : value
+            } 
+          : hour
       )
     }))
   }
@@ -412,6 +435,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     return formData.openingHourList.find(hour => hour.dayOfWeek === selectedDay) || 
            { dayOfWeek: selectedDay, closed: false }
   }
+
+  const [touchedFields, setTouchedFields] = useState<{[key: string]: boolean}>({})
 
   // 저장버튼 활성화 검사
   const isFormValid = () => {
@@ -434,9 +459,26 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                           (formData.spotType === 'RESTAURANT' && formData.priceFeature !== undefined)
 
     // 대표 메뉴: 최소 하나의 메뉴에 이름과 가격이 모두 입력되어야 함
-    const hasSignatureMenu = formData.signatureMenuList.some(menu => 
-      menu.name && menu.name.trim() !== '' && menu.price && menu.price > 0
+    const hasCompleteMenu = formData.signatureMenuList.some(menu => 
+      menu && 
+      menu.name && 
+      menu.name.trim() !== '' && 
+      menu.price !== undefined &&
+      (menu.price >= 0 || menu.price === -1)
     )
+
+    // 2. 불완전한 메뉴(이름만 있거나 가격만 있는)가 없는지
+    const hasNoIncompleteMenu = formData.signatureMenuList.every(menu => {
+      if (!menu) return true
+      
+      const hasName = menu.name && menu.name.trim() !== ''
+      const hasPrice = menu.price !== undefined && (menu.price >= 0 || menu.price === -1)
+      
+      // 메뉴명, 가격 둘 중 하나만 있으면 안됨
+      return (hasName && hasPrice) || (!hasName && !hasPrice)
+    })
+
+    const hasSignatureMenu = hasCompleteMenu && hasNoIncompleteMenu
 
     return hasBasicFields && hasSpotFeature && hasValidOpeningHours && hasPriceFeature && hasSignatureMenu
   }
@@ -748,7 +790,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                 marginBottom: '8px',
                 color: 'var(--color-gray-800)'
               }}>
-                도로명주소 <span style={{ color: '#dc2626' }}>*</span>
+                지번 주소 <span style={{ color: '#dc2626' }}>*</span> (지번 주소 없을 경우만 도로명 !!)
               </label>
               <input
                 type="text"
@@ -821,7 +863,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                     border: '1px solid var(--color-gray-400)',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
                   }}
                   placeholder="도토리 개수를 입력하세요"
                 />
@@ -866,7 +908,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              {formData.spotType === 'CAFE' ? '카페 특성' : '식당 특성'} <span style={{ color: 'var(--color-secondary-orange)' }}>*</span>
+            {formData.spotType === 'CAFE' ? '카페 특성' : '식당 특성'}
+                {formData.spotType !== 'CAFE' && <span style={{ color: '#dc2626' }}> *</span>}
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {formData.spotType === 'CAFE' ? (
@@ -912,7 +955,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              영업 시간 <span style={{ color: 'var(--color-secondary-orange)' }}>*</span>
+              영업 시간 <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
               {formData.openingHourList.map((hour) => (
@@ -1061,7 +1104,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              대표 메뉴 (최소 1개 이상 입력)
+              대표 메뉴 <span style={{ color: '#dc2626' }}>*</span> (최소 1개 이상 입력, 싯가는 가격 -1)
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[0, 1, 2].map((index) => (
@@ -1084,8 +1127,15 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                   />
                   <input
                     type="number"
-                    value={formData.signatureMenuList[index]?.price ?? ''}
-                    onChange={(e) => updateSignatureMenu(index, 'price', e.target.value === '' ? 0 : parseInt(e.target.value))}
+                    value={
+                      touchedFields[`price-${index}`] || formData.signatureMenuList[index]?.price !== undefined
+                        ? formData.signatureMenuList[index]?.price ?? ''
+                        : ''
+                    }
+                    onChange={(e) => {
+                      setTouchedFields(prev => ({ ...prev, [`price-${index}`]: true }))
+                      updateSignatureMenu(index, 'price', e.target.value === '' ? 0 : parseInt(e.target.value))
+                    }}
                     placeholder="가격을 입력하세요 (원)"
                     style={{
                       padding: '8px',
@@ -1156,7 +1206,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
               marginBottom: '8px',
               color: 'var(--color-gray-800)'
             }}>
-              가성비
+              가성비 <span style={{ color: '#dc2626' }}>*</span>
             </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {Object.entries(priceFeatureLabels).map(([key, label]) => (
