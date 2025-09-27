@@ -357,8 +357,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
     setFormData(prev => {
       const newList = [...prev.signatureMenuList]
       
-      while (newList.length <= index) {
-        newList.push({ name: '', price: 0 })
+      if (!newList[index]) {
+        newList[index] = { name: '', price: 0 }
       }
       
       newList[index] = { ...newList[index], [field]: value }
@@ -436,6 +436,8 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
            { dayOfWeek: selectedDay, closed: false }
   }
 
+  const [touchedFields, setTouchedFields] = useState<{[key: string]: boolean}>({})
+
   // 저장버튼 활성화 검사
   const isFormValid = () => {
     const hasBasicFields = formData.spotName.trim() !== '' &&
@@ -457,9 +459,26 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                           (formData.spotType === 'RESTAURANT' && formData.priceFeature !== undefined)
 
     // 대표 메뉴: 최소 하나의 메뉴에 이름과 가격이 모두 입력되어야 함
-    const hasSignatureMenu = formData.signatureMenuList.some(menu => 
-      menu.name && menu.name.trim() !== '' && menu.price && menu.price >= -1
+    const hasCompleteMenu = formData.signatureMenuList.some(menu => 
+      menu && 
+      menu.name && 
+      menu.name.trim() !== '' && 
+      menu.price !== undefined &&
+      (menu.price >= 0 || menu.price === -1)
     )
+
+    // 2. 불완전한 메뉴(이름만 있거나 가격만 있는)가 없는지
+    const hasNoIncompleteMenu = formData.signatureMenuList.every(menu => {
+      if (!menu) return true
+      
+      const hasName = menu.name && menu.name.trim() !== ''
+      const hasPrice = menu.price !== undefined && (menu.price >= 0 || menu.price === -1)
+      
+      // 메뉴명, 가격 둘 중 하나만 있으면 안됨
+      return (hasName && hasPrice) || (!hasName && !hasPrice)
+    })
+
+    const hasSignatureMenu = hasCompleteMenu && hasNoIncompleteMenu
 
     return hasBasicFields && hasSpotFeature && hasValidOpeningHours && hasPriceFeature && hasSignatureMenu
   }
@@ -844,7 +863,7 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                     border: '1px solid var(--color-gray-400)',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
                   }}
                   placeholder="도토리 개수를 입력하세요"
                 />
@@ -1108,8 +1127,15 @@ export default function SpotForm({ mode, spotId }: SpotFormProps) {
                   />
                   <input
                     type="number"
-                    value={formData.signatureMenuList[index]?.price ?? ''}
-                    onChange={(e) => updateSignatureMenu(index, 'price', e.target.value === '' ? 0 : parseInt(e.target.value))}
+                    value={
+                      touchedFields[`price-${index}`] || formData.signatureMenuList[index]?.price !== undefined
+                        ? formData.signatureMenuList[index]?.price ?? ''
+                        : ''
+                    }
+                    onChange={(e) => {
+                      setTouchedFields(prev => ({ ...prev, [`price-${index}`]: true }))
+                      updateSignatureMenu(index, 'price', e.target.value === '' ? 0 : parseInt(e.target.value))
+                    }}
                     placeholder="가격을 입력하세요 (원)"
                     style={{
                       padding: '8px',
